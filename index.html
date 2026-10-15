@@ -134,6 +134,21 @@ input{font:inherit;color:var(--text);background:var(--surface);border:1px solid 
 .ph h3{margin:0;font-size:18px}
 .lab{font-size:13px;color:var(--muted);margin:12px 0 5px}
 .panel .ev{margin-bottom:2px}
+.more-m{display:none}
+#agenda{display:none;margin-top:20px}
+#agenda h2{margin:0 0 10px;font-size:18px;font-weight:700}
+.ag{display:flex;flex-direction:column;gap:6px}
+.agr{font:inherit;color:inherit;text-align:left;display:flex;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+.agd{flex:none;width:72px;color:var(--muted);font-size:13px;font-weight:600}
+.agl{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
+.agi{border-left:3px solid var(--c,var(--accent));padding-left:7px;word-break:break-word}
+.agi.done{text-decoration:line-through;color:var(--muted)}
+#splash{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;animation:splashOut .45s ease 1.25s forwards}
+#splash img{width:104px;height:104px;border-radius:24px;box-shadow:0 12px 36px rgba(43,89,195,.35);animation:iconIn .8s cubic-bezier(.2,.9,.3,1.2) backwards}
+#splash .sn{font-size:20px;font-weight:700;letter-spacing:-.01em;animation:rise2 .5s ease .35s backwards}
+@keyframes iconIn{from{transform:scale(.4) rotate(-10deg);opacity:0}}
+@keyframes rise2{from{transform:translateY(10px);opacity:0}}
+@keyframes splashOut{to{opacity:0;visibility:hidden}}
 @keyframes fade{from{opacity:0}}
 @keyframes rise{from{transform:translateY(26px) scale(.98);opacity:0}}
 @keyframes slideR{from{transform:translateX(30px);opacity:0}}
@@ -143,15 +158,18 @@ input{font:inherit;color:var(--text);background:var(--surface);border:1px solid 
 .go-l{animation:slideL .3s ease-out}
 .pop{animation:pop .35s cubic-bezier(.2,.8,.2,1) backwards}
 @media (max-width:700px){
-  .cell{min-height:66px;padding:4px;align-items:center}
-  .pv{display:none}
-  .dots{display:flex}
-  .ct{flex-direction:column;gap:2px}
-  .ki{margin-left:0;font-size:12px;letter-spacing:0}
+  .cell{min-height:92px;padding:3px}
+  .ct{justify-content:flex-start;gap:2px}
+  .dn2{width:22px;height:22px;font-size:12px}
+  .ki{display:none}
+  .pe{font-size:10px;line-height:1.2;padding:1px 3px;border-left-width:2px;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word}
+  .pe:nth-child(3),.more{display:none}
+  .more-m{display:block}
+  #agenda{display:block}
   .sheet{align-items:end;padding:0}
   .panel{width:100%;border-radius:20px 20px 0 0;max-height:88%}
 }
-@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}#splash{display:none}}
 @media (max-width:900px){
   .week{grid-template-columns:1fr}
   .day{border-left:0;border-top:1px solid var(--line);min-height:0}
@@ -160,6 +178,7 @@ input{font:inherit;color:var(--text);background:var(--surface);border:1px solid 
 </style>
 </head>
 <body>
+<div id="splash"><img src="icon.png" alt=""><div class="sn">Планер</div></div>
 <div class="wrap">
   <header>
     <h1 id="title"></h1>
@@ -170,6 +189,7 @@ input{font:inherit;color:var(--text);background:var(--surface);border:1px solid 
     </nav>
   </header>
   <main id="month"></main>
+  <section id="agenda"></section>
   <div class="sheet" id="sheet" hidden></div>
   <section class="todo">
     <h2>Дела</h2>
@@ -264,6 +284,7 @@ function renderMonth(dir) {
       pv.append(p);
     });
     if (evs.length > 3) pv.append(el('div', 'more', 'ещё ' + (evs.length - 3)));
+    if (evs.length > 2) pv.append(el('div', 'more more-m', '+' + (evs.length - 2)));
     c.append(pv);
     const dots = el('div', 'dots');
     evs.slice(0, 5).forEach(e => {
@@ -279,6 +300,36 @@ function renderMonth(dir) {
   box.innerHTML = '';
   box.append(grid);
   document.getElementById('title').textContent = MFULL[vm] + ' ' + vy;
+  renderAgenda();
+}
+
+function renderAgenda() {
+  const a = document.getElementById('agenda');
+  a.innerHTML = '';
+  a.append(el('h2', null, 'Дела месяца'));
+  const box = el('div', 'ag');
+  const days = new Date(vy, vm + 1, 0).getDate();
+  let any = false;
+  for (let n = 1; n <= days; n++) {
+    const dd = new Date(vy, vm, n), k = iso(dd), evs = dayEvs(k);
+    if (!evs.length) continue;
+    any = true;
+    const row = el('button', 'agr'); row.type = 'button';
+    row.append(el('span', 'agd', n + ' ' + MON[vm] + ', ' + WD[(dd.getDay() + 6) % 7]));
+    const col = el('span', 'agl');
+    evs.forEach(e => {
+      const kd = kindOf(e);
+      const li = el('span', 'agi' + (e.done ? ' done' : '') + (e.color ? ' ' + e.color : ''),
+        (e.time ? e.time + ' ' : '') + (kd ? kd.icon + ' ' : '') + e.title);
+      if (!e.color && kd) li.style.setProperty('--c', kd.color);
+      col.append(li);
+    });
+    row.append(col);
+    row.onclick = () => { sel = k; renderSheet(false); };
+    box.append(row);
+  }
+  if (!any) box.append(el('div', 'lab', 'В этом месяце пока ничего не запланировано'));
+  a.append(box);
 }
 
 function addEv(k, time, title, color, kind) {
@@ -468,6 +519,7 @@ document.getElementById('catform').onsubmit = e => {
   saveTodo(); renderTodo();
 };
 renderTodo();
+setTimeout(() => { const sp = document.getElementById('splash'); if (sp) sp.remove(); }, 1900);
 </script>
 </body>
 </html>
