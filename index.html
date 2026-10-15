@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Планер">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#f6f7f9">
+<link rel="apple-touch-icon" href="icon.png">
+<title>Планер недели</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --bg:#f6f7f9;--surface:#fff;--text:#1b2430;--muted:#7a8594;--line:#e3e7ec;
+  --accent:#2b59c3;--accent-soft:#eef2fb;--on-accent:#fff;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#12161c;--surface:#181d25;--text:#e8ecf2;--muted:#8692a3;--line:#262d38;
+    --accent:#7d9cf0;--accent-soft:#1c2433;--on-accent:#12161c;color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#12161c;--surface:#181d25;--text:#e8ecf2;--muted:#8692a3;--line:#262d38;
+  --accent:#7d9cf0;--accent-soft:#1c2433;--on-accent:#12161c;color-scheme:dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:15px/1.45 "Manrope",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1240px;margin:0 auto;padding:24px 16px 48px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.01em}
+nav{display:flex;gap:6px}
+button{font:inherit;color:inherit;cursor:pointer}
+.nb{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:7px 13px;min-width:40px}
+.nb:hover{background:var(--accent-soft)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));background:var(--surface);
+  border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.day{padding:14px 12px;border-left:1px solid var(--line);min-height:300px;display:flex;flex-direction:column;gap:4px}
+.day:first-child{border-left:0}
+.day.today{background:var(--accent-soft)}
+.dh{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.wd{color:var(--muted);font-size:13px;font-weight:500}
+.dn{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:16px}
+.today .dn{background:var(--accent);color:var(--on-accent)}
+.ev{display:flex;align-items:flex-start;gap:6px;padding:7px 8px;border-radius:10px;cursor:pointer;position:relative}
+.ev:hover{background:var(--accent-soft)}
+.today .ev:hover{background:var(--surface)}
+.ev .body{flex:1;min-width:0}
+.ev .t{display:block;font-size:12px;font-weight:600;color:var(--accent);font-variant-numeric:tabular-nums}
+.ev .tt{display:block;word-break:break-word}
+.ev.done .tt{text-decoration:line-through;color:var(--muted)}
+.ev.done .t{color:var(--muted)}
+.x{background:none;border:0;color:var(--muted);font-size:18px;line-height:1;padding:0 4px;opacity:0;border-radius:6px}
+.ev:hover .x,.x:focus-visible{opacity:1}
+@media (hover:none){.x{opacity:.6}}
+.addbtn{margin-top:auto;background:none;border:1px dashed var(--line);color:var(--muted);border-radius:10px;padding:7px 8px;text-align:left}
+.addbtn:hover{color:var(--accent);border-color:var(--accent)}
+form{margin-top:auto;display:flex;flex-direction:column;gap:6px}
+input{font:inherit;color:var(--text);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:7px 9px;width:100%;min-width:0}
+.row{display:flex;gap:6px}
+.save{flex:1;background:var(--accent);color:var(--on-accent);border:0;border-radius:10px;padding:7px 10px;font-weight:600}
+.cancel{background:none;border:1px solid var(--line);border-radius:10px;padding:7px 10px;color:var(--muted)}
+.c1{--c:#e5484d}.c2{--c:#f08c00}.c3{--c:#2f9e6b}.c4{--c:#2b59c3}.c5{--c:#8e5bd9}
+.ev[data-c]{border-left:3px solid var(--c);background:color-mix(in srgb,var(--c) 14%,transparent)}
+.ev[data-c]:hover{background:color-mix(in srgb,var(--c) 24%,transparent)}
+.dot,.swb{border-radius:50%;padding:0;flex:none;background:var(--c,transparent);border:1.5px solid var(--c,var(--muted))}
+.dot{width:12px;height:12px;margin-top:5px}
+.sw{display:flex;gap:9px;padding:2px}
+.swb{width:18px;height:18px}
+.swb.on{outline:2px solid var(--text);outline-offset:2px}
+.d1{--dc:#e5484d}.d2{--dc:#f08c00}.d3{--dc:#2f9e6b}.d4{--dc:#2b59c3}.d5{--dc:#8e5bd9}
+.dn{background:none;border:0;padding:0;color:inherit;font-family:inherit;cursor:pointer}
+.dn:hover{box-shadow:inset 0 0 0 1.5px var(--muted)}
+.day.dc{background:color-mix(in srgb,var(--dc) 10%,transparent)}
+.day.dc .dn{background:var(--dc);color:#fff}
+.day.today.dc .dn{outline:2px solid var(--accent);outline-offset:2px}
+.todo{margin-top:32px}
+.todo h2{margin:0 0 12px;font-size:18px;font-weight:700}
+.cats{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;align-items:start}
+.cat{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px}
+.ch{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.ch h3{margin:0;font-size:15px;font-weight:700;flex:1;min-width:0;word-break:break-word}
+.cnt{color:var(--muted);font-size:13px}
+.ch .x,.it .x{opacity:.45}
+.ch .x:hover,.it .x:hover{opacity:1}
+.x.arm{opacity:1;color:#e5484d;font-size:13px}
+.it{display:flex;align-items:center;gap:8px;padding:5px 2px}
+.it input{width:18px;height:18px;padding:0;accent-color:var(--accent);flex:none}
+.it span{flex:1;min-width:0;word-break:break-word}
+.it.done span{text-decoration:line-through;color:var(--muted)}
+.cat form{flex-direction:row;margin-top:8px}
+.newcat{flex-direction:row;margin-top:12px;max-width:520px}
+.newcat .save{flex:none;white-space:nowrap}
+.ki{margin-left:auto;font-size:15px;letter-spacing:2px}
+.day.dk:not(.dc){background:color-mix(in srgb,var(--kc) 13%,transparent)}
+.chips{display:flex;flex-wrap:wrap;gap:4px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:3px 7px;font-size:15px;line-height:1.2}
+.chip:hover{border-color:var(--accent)}
+@media (max-width:900px){
+  .week{grid-template-columns:1fr}
+  .day{border-left:0;border-top:1px solid var(--line);min-height:0}
+  .day:first-child{border-top:0}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1 id="title"></h1>
+    <nav>
+      <button class="nb" id="prev" aria-label="Предыдущая неделя">‹</button>
+      <button class="nb" id="today">Сегодня</button>
+      <button class="nb" id="next" aria-label="Следующая неделя">›</button>
+    </nav>
+  </header>
+  <main class="week" id="week"></main>
+  <section class="todo">
+    <h2>Дела</h2>
+    <div class="cats" id="cats"></div>
+    <form class="newcat" id="catform">
+      <input id="catname" type="text" placeholder="Новый раздел, например «Работа»" aria-label="Название раздела">
+      <button class="save" type="submit">Создать раздел</button>
+    </form>
+  </section>
+</div>
+<script>
+const KEY = 'planner-week-v1';
+const WD = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+const COLORS = ['', 'c1', 'c2', 'c3', 'c4', 'c5'];
+const KINDS = [
+  { id: 'clean',   icon: '🧹', name: 'Уборка',   text: 'Уборка',            color: '#2f9e6b', re: /убор|пылесос|протер/i },
+  { id: 'shop',    icon: '🛒', name: 'Продукты', text: 'Купить продукты',   color: '#f08c00', re: /продукт|магазин|супермаркет/i },
+  { id: 'laundry', icon: '🧺', name: 'Стирка',   text: 'Стирка',            color: '#2b8fc3', re: /стир|бельё|белье|гладить|утюг/i },
+  { id: 'cook',    icon: '🍲', name: 'Готовка',  text: 'Приготовить ужин',  color: '#e5484d', re: /приготов|готовк|готовить|ужин|обед/i },
+  { id: 'trash',   icon: '🗑️', name: 'Мусор',    text: 'Вынести мусор',     color: '#7a8594', re: /мусор/i },
+  { id: 'plants',  icon: '🪴', name: 'Цветы',    text: 'Полить цветы',      color: '#7cb342', re: /цветы|цветов|полить|растени/i },
+  { id: 'bills',   icon: '💳', name: 'Счета',    text: 'Оплатить счета',    color: '#8e5bd9', re: /оплат|счета|счёт|коммунал/i },
+  { id: 'sport',   icon: '🏃', name: 'Спорт',    text: 'Тренировка',        color: '#d6409f', re: /спорт|трениров|пробеж|бег/i }
+];
+function kindOf(e) {
+  return KINDS.find(k => k.id === e.kind) || (e.kind == null ? KINDS.find(k => k.re.test(e.title)) : null) || null;
+}
+const MON = ['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'];
+let data = {};
+try { data = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { data = {}; }
+function save() { try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) {} }
+
+function startOfWeek(d) {
+  const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  x.setDate(x.getDate() - ((x.getDay() + 6) % 7));
+  return x;
+}
+function iso(d) {
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function el(tag, cls, text) {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text != null) n.textContent = text;
+  return n;
+}
+
+const DKEY = 'planner-days-v1';
+let dayColors = {};
+try { dayColors = JSON.parse(localStorage.getItem(DKEY) || '{}') || {}; } catch (e) { dayColors = {}; }
+function saveDays() { try { localStorage.setItem(DKEY, JSON.stringify(dayColors)); } catch (e) {} }
+let monday = startOfWeek(new Date());
+let openDay = null;
+
+function render() {
+  const week = document.getElementById('week');
+  week.innerHTML = '';
+  const todayKey = iso(new Date());
+  const sun = new Date(monday); sun.setDate(sun.getDate() + 6);
+  document.getElementById('title').textContent =
+    monday.getDate() + ' ' + MON[monday.getMonth()] + ' – ' + sun.getDate() + ' ' + MON[sun.getMonth()] + ' ' + sun.getFullYear();
+
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday); d.setDate(d.getDate() + i);
+    const k = iso(d);
+    const dayEvs = (data[k] || []).slice().sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99'));
+    const kinds = [];
+    dayEvs.forEach(e => { const kd = kindOf(e); if (kd && !kinds.includes(kd)) kinds.push(kd); });
+    const col = el('section', 'day' + (k === todayKey ? ' today' : '') + (dayColors[k] ? ' dc d' + dayColors[k].slice(1) : '') + (kinds.length ? ' dk' : ''));
+    if (kinds.length) col.style.setProperty('--kc', kinds[0].color);
+
+    const head = el('div', 'dh');
+    const dn = el('button', 'dn', d.getDate());
+    dn.type = 'button'; dn.title = 'Цвет дня'; dn.setAttribute('aria-label', 'Покрасить день');
+    dn.onclick = () => {
+      const next = COLORS[(COLORS.indexOf(dayColors[k] || '') + 1) % COLORS.length];
+      if (next) dayColors[k] = next; else delete dayColors[k];
+      saveDays(); render();
+    };
+    head.append(dn, el('span', 'wd', WD[i]));
+    if (kinds.length) {
+      const ki = el('span', 'ki', kinds.map(x => x.icon).join(''));
+      ki.title = kinds.map(x => x.name).join(', ');
+      head.append(ki);
+    }
+    col.append(head);
+
+    const list = (data[k] || []).slice().sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99'));
+    list.forEach(ev => {
+      const row = el('div', 'ev' + (ev.done ? ' done' : '') + (ev.color ? ' ' + ev.color : ''));
+      const kd = kindOf(ev);
+      if (ev.color) row.dataset.c = '1';
+      else if (kd) { row.dataset.c = '1'; row.style.setProperty('--c', kd.color); }
+      const body = el('div', 'body');
+      if (ev.time) body.append(el('span', 't', ev.time));
+      body.append(el('span', 'tt', (kd ? kd.icon + ' ' : '') + ev.title));
+      const dot = el('button', 'dot');
+      dot.type = 'button'; dot.title = 'Сменить цвет'; dot.setAttribute('aria-label', 'Сменить цвет');
+      dot.onclick = e => {
+        e.stopPropagation();
+        ev.color = COLORS[(COLORS.indexOf(ev.color || '') + 1) % COLORS.length];
+        save(); render();
+      };
+      const del = el('button', 'x', '×');
+      del.title = 'Удалить';
+      del.setAttribute('aria-label', 'Удалить');
+      del.onclick = e => {
+        e.stopPropagation();
+        data[k] = data[k].filter(x => x.id !== ev.id);
+        save(); render();
+      };
+      row.onclick = () => { ev.done = !ev.done; save(); render(); };
+      row.append(dot, body, del);
+      col.append(row);
+    });
+
+    if (openDay === k) {
+      const f = el('form');
+      const time = el('input'); time.type = 'time'; time.setAttribute('aria-label', 'Время');
+      const text = el('input'); text.type = 'text'; text.placeholder = 'Что запланировано';
+      text.setAttribute('aria-label', 'Событие'); text.dataset.focus = '1';
+      let picked = '';
+      const sw = el('div', 'sw');
+      COLORS.forEach(c => {
+        const b = el('button', 'swb ' + c); b.type = 'button'; b.setAttribute('aria-label', 'Цвет');
+        if (c === '') b.classList.add('on');
+        b.onclick = () => { picked = c; sw.querySelectorAll('.swb').forEach(x => x.classList.toggle('on', x === b)); };
+        sw.append(b);
+      });
+      const r = el('div', 'row');
+      const ok = el('button', 'save', 'Сохранить'); ok.type = 'submit';
+      const no = el('button', 'cancel', 'Отмена'); no.type = 'button';
+      no.onclick = () => { openDay = null; render(); };
+      r.append(ok, no);
+      const chips = el('div', 'chips');
+      KINDS.forEach(kd => {
+        const b = el('button', 'chip', kd.icon); b.type = 'button';
+        b.title = kd.text; b.setAttribute('aria-label', kd.text);
+        b.onclick = () => {
+          (data[k] = data[k] || []).push({ id: Date.now() + Math.random(), time: time.value, title: kd.text, done: false, color: '', kind: kd.id });
+          save(); render();
+        };
+        chips.append(b);
+      });
+      f.append(time, text, chips, sw, r);
+      f.onsubmit = e => {
+        e.preventDefault();
+        const title = text.value.trim();
+        if (!title) { text.focus(); return; }
+        (data[k] = data[k] || []).push({ id: Date.now() + Math.random(), time: time.value, title, done: false, color: picked, kind: (KINDS.find(k => k.re.test(title)) || {}).id || '' });
+        save(); render();
+      };
+      f.onkeydown = e => { if (e.key === 'Escape') { openDay = null; render(); } };
+      col.append(f);
+    } else {
+      const b = el('button', 'addbtn', '+ Добавить');
+      b.onclick = () => { openDay = k; render(); };
+      col.append(b);
+    }
+    week.append(col);
+  }
+  const f = week.querySelector('[data-focus]');
+  if (f) f.focus();
+}
+
+document.getElementById('prev').onclick = () => { monday.setDate(monday.getDate() - 7); openDay = null; render(); };
+document.getElementById('next').onclick = () => { monday.setDate(monday.getDate() + 7); openDay = null; render(); };
+document.getElementById('today').onclick = () => { monday = startOfWeek(new Date()); openDay = null; render(); };
+render();
+
+const TKEY = 'planner-todo-v1';
+let todo = null;
+try { todo = JSON.parse(localStorage.getItem(TKEY) || 'null'); } catch (e) { todo = null; }
+if (!Array.isArray(todo)) {
+  todo = [
+    { id: 'c-home', name: 'Домашние дела', items: [] },
+    { id: 'c-clean', name: 'Уборка', items: [] },
+    { id: 'c-shop', name: 'Купить продукты', items: [] }
+  ];
+}
+function saveTodo() { try { localStorage.setItem(TKEY, JSON.stringify(todo)); } catch (e) {} }
+let todoFocus = null;
+let armedCat = null;
+
+function renderTodo() {
+  const box = document.getElementById('cats');
+  box.innerHTML = '';
+  todo.forEach(cat => {
+    const c = el('div', 'cat');
+    const h = el('div', 'ch');
+    const left = cat.items.filter(i => !i.done).length;
+    h.append(el('h3', null, cat.name));
+    if (cat.items.length) h.append(el('span', 'cnt', left + ' из ' + cat.items.length));
+    const armed = armedCat === cat.id;
+    const rm = el('button', 'x' + (armed ? ' arm' : ''), armed ? 'Удалить?' : '×');
+    rm.type = 'button'; rm.title = 'Удалить раздел';
+    rm.onclick = () => {
+      if (!cat.items.length || armed) { todo = todo.filter(x => x !== cat); armedCat = null; }
+      else armedCat = cat.id;
+      saveTodo(); renderTodo();
+    };
+    h.append(rm);
+    c.append(h);
+
+    cat.items.forEach(it => {
+      const row = el('div', 'it' + (it.done ? ' done' : ''));
+      const cb = el('input'); cb.type = 'checkbox'; cb.checked = !!it.done;
+      cb.setAttribute('aria-label', 'Выполнено');
+      cb.onchange = () => { it.done = cb.checked; saveTodo(); renderTodo(); };
+      const del = el('button', 'x', '×'); del.type = 'button'; del.title = 'Удалить';
+      del.onclick = () => { cat.items = cat.items.filter(x => x !== it); saveTodo(); renderTodo(); };
+      row.append(cb, el('span', null, it.text), del);
+      c.append(row);
+    });
+
+    const f = el('form');
+    const inp = el('input'); inp.type = 'text'; inp.placeholder = 'Добавить дело';
+    inp.setAttribute('aria-label', 'Новое дело в разделе ' + cat.name);
+    inp.dataset.tf = cat.id;
+    f.append(inp);
+    f.onsubmit = e => {
+      e.preventDefault();
+      const t = inp.value.trim();
+      if (!t) return;
+      cat.items.push({ id: Date.now() + Math.random(), text: t, done: false });
+      todoFocus = cat.id; armedCat = null;
+      saveTodo(); renderTodo();
+    };
+    c.append(f);
+    box.append(c);
+  });
+  if (todoFocus) {
+    const n = box.querySelector('[data-tf="' + todoFocus + '"]');
+    if (n) n.focus();
+    todoFocus = null;
+  }
+}
+
+document.getElementById('catform').onsubmit = e => {
+  e.preventDefault();
+  const inp = document.getElementById('catname');
+  const name = inp.value.trim();
+  if (!name) return;
+  todo.push({ id: 'c' + Date.now(), name, items: [] });
+  inp.value = '';
+  saveTodo(); renderTodo();
+};
+renderTodo();
+</script>
+</body>
+</html>
