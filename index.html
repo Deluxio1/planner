@@ -104,6 +104,54 @@ input{font:inherit;color:var(--text);background:var(--surface);border:1px solid 
 .chips{display:flex;flex-wrap:wrap;gap:4px}
 .chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:3px 7px;font-size:15px;line-height:1.2}
 .chip:hover{border-color:var(--accent)}
+#month{touch-action:pan-y}
+.grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.wh{background:var(--surface);padding:8px 4px;text-align:center;color:var(--muted);font-size:13px;font-weight:500}
+.cell{font:inherit;color:inherit;text-align:left;background:var(--surface);border:0;padding:6px;min-height:104px;display:flex;flex-direction:column;gap:3px;cursor:pointer;min-width:0;transition:box-shadow .15s}
+.cell:hover{box-shadow:inset 0 0 0 2px var(--accent)}
+.cell:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.cell.today:not(.dc):not(.dk){background:var(--accent-soft)}
+.cell.dk:not(.dc){background:color-mix(in srgb,var(--kc) 15%,var(--surface))}
+.cell.dc{background:color-mix(in srgb,var(--dc) 13%,var(--surface))}
+.ct{display:flex;align-items:center;justify-content:space-between}
+.dn2{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-weight:600;font-size:14px}
+.cell.today .dn2{background:var(--accent);color:var(--on-accent)}
+.cell.dc .dn2{background:var(--dc);color:#fff}
+.cell.today.dc .dn2{outline:2px solid var(--accent);outline-offset:2px}
+.cell.out .dn2{color:var(--muted)}
+.cell.out .pv,.cell.out .dots,.cell.out .ki{opacity:.5}
+.pv{display:flex;flex-direction:column;gap:2px;min-width:0}
+.pe{font-size:12px;line-height:1.3;padding:1px 5px;border-radius:5px;border-left:3px solid var(--c,var(--accent));background:color-mix(in srgb,var(--c,var(--accent)) 15%,var(--surface));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pe.done{text-decoration:line-through;color:var(--muted)}
+.more{font-size:12px;color:var(--muted);padding-left:2px}
+.dots{display:none;gap:3px;flex-wrap:wrap;justify-content:center}
+.pd{width:6px;height:6px;border-radius:50%;background:var(--c,var(--accent))}
+.sheet{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:16px;background:rgba(10,14,20,.45);animation:fade .18s}
+.sheet[hidden]{display:none}
+.panel{width:min(440px,100%);max-height:calc(100% - 32px);overflow:auto;background:var(--surface);border-radius:20px;padding:18px 18px calc(18px + env(safe-area-inset-bottom,0px));box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.panel.rise{animation:rise .24s cubic-bezier(.2,.8,.2,1)}
+.ph{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+.ph h3{margin:0;font-size:18px}
+.lab{font-size:13px;color:var(--muted);margin:12px 0 5px}
+.panel .ev{margin-bottom:2px}
+@keyframes fade{from{opacity:0}}
+@keyframes rise{from{transform:translateY(26px) scale(.98);opacity:0}}
+@keyframes slideR{from{transform:translateX(30px);opacity:0}}
+@keyframes slideL{from{transform:translateX(-30px);opacity:0}}
+@keyframes pop{from{transform:scale(.9);opacity:0}}
+.go-r{animation:slideR .3s ease-out}
+.go-l{animation:slideL .3s ease-out}
+.pop{animation:pop .35s cubic-bezier(.2,.8,.2,1) backwards}
+@media (max-width:700px){
+  .cell{min-height:66px;padding:4px;align-items:center}
+  .pv{display:none}
+  .dots{display:flex}
+  .ct{flex-direction:column;gap:2px}
+  .ki{margin-left:0;font-size:12px;letter-spacing:0}
+  .sheet{align-items:end;padding:0}
+  .panel{width:100%;border-radius:20px 20px 0 0;max-height:88%}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 @media (max-width:900px){
   .week{grid-template-columns:1fr}
   .day{border-left:0;border-top:1px solid var(--line);min-height:0}
@@ -116,12 +164,13 @@ input{font:inherit;color:var(--text);background:var(--surface);border:1px solid 
   <header>
     <h1 id="title"></h1>
     <nav>
-      <button class="nb" id="prev" aria-label="Предыдущая неделя">‹</button>
+      <button class="nb" id="prev" aria-label="Предыдущий месяц">‹</button>
       <button class="nb" id="today">Сегодня</button>
-      <button class="nb" id="next" aria-label="Следующая неделя">›</button>
+      <button class="nb" id="next" aria-label="Следующий месяц">›</button>
     </nav>
   </header>
-  <main class="week" id="week"></main>
+  <main id="month"></main>
+  <div class="sheet" id="sheet" hidden></div>
   <section class="todo">
     <h2>Дела</h2>
     <div class="cats" id="cats"></div>
@@ -172,124 +221,174 @@ const DKEY = 'planner-days-v1';
 let dayColors = {};
 try { dayColors = JSON.parse(localStorage.getItem(DKEY) || '{}') || {}; } catch (e) { dayColors = {}; }
 function saveDays() { try { localStorage.setItem(DKEY, JSON.stringify(dayColors)); } catch (e) {} }
-let monday = startOfWeek(new Date());
-let openDay = null;
-
-function render() {
-  const week = document.getElementById('week');
-  week.innerHTML = '';
-  const todayKey = iso(new Date());
-  const sun = new Date(monday); sun.setDate(sun.getDate() + 6);
-  document.getElementById('title').textContent =
-    monday.getDate() + ' ' + MON[monday.getMonth()] + ' – ' + sun.getDate() + ' ' + MON[sun.getMonth()] + ' ' + sun.getFullYear();
-
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(monday); d.setDate(d.getDate() + i);
-    const k = iso(d);
-    const dayEvs = (data[k] || []).slice().sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99'));
-    const kinds = [];
-    dayEvs.forEach(e => { const kd = kindOf(e); if (kd && !kinds.includes(kd)) kinds.push(kd); });
-    const col = el('section', 'day' + (k === todayKey ? ' today' : '') + (dayColors[k] ? ' dc d' + dayColors[k].slice(1) : '') + (kinds.length ? ' dk' : ''));
-    if (kinds.length) col.style.setProperty('--kc', kinds[0].color);
-
-    const head = el('div', 'dh');
-    const dn = el('button', 'dn', d.getDate());
-    dn.type = 'button'; dn.title = 'Цвет дня'; dn.setAttribute('aria-label', 'Покрасить день');
-    dn.onclick = () => {
-      const next = COLORS[(COLORS.indexOf(dayColors[k] || '') + 1) % COLORS.length];
-      if (next) dayColors[k] = next; else delete dayColors[k];
-      saveDays(); render();
-    };
-    head.append(dn, el('span', 'wd', WD[i]));
-    if (kinds.length) {
-      const ki = el('span', 'ki', kinds.map(x => x.icon).join(''));
-      ki.title = kinds.map(x => x.name).join(', ');
-      head.append(ki);
-    }
-    col.append(head);
-
-    const list = (data[k] || []).slice().sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99'));
-    list.forEach(ev => {
-      const row = el('div', 'ev' + (ev.done ? ' done' : '') + (ev.color ? ' ' + ev.color : ''));
-      const kd = kindOf(ev);
-      if (ev.color) row.dataset.c = '1';
-      else if (kd) { row.dataset.c = '1'; row.style.setProperty('--c', kd.color); }
-      const body = el('div', 'body');
-      if (ev.time) body.append(el('span', 't', ev.time));
-      body.append(el('span', 'tt', (kd ? kd.icon + ' ' : '') + ev.title));
-      const dot = el('button', 'dot');
-      dot.type = 'button'; dot.title = 'Сменить цвет'; dot.setAttribute('aria-label', 'Сменить цвет');
-      dot.onclick = e => {
-        e.stopPropagation();
-        ev.color = COLORS[(COLORS.indexOf(ev.color || '') + 1) % COLORS.length];
-        save(); render();
-      };
-      const del = el('button', 'x', '×');
-      del.title = 'Удалить';
-      del.setAttribute('aria-label', 'Удалить');
-      del.onclick = e => {
-        e.stopPropagation();
-        data[k] = data[k].filter(x => x.id !== ev.id);
-        save(); render();
-      };
-      row.onclick = () => { ev.done = !ev.done; save(); render(); };
-      row.append(dot, body, del);
-      col.append(row);
-    });
-
-    if (openDay === k) {
-      const f = el('form');
-      const time = el('input'); time.type = 'time'; time.setAttribute('aria-label', 'Время');
-      const text = el('input'); text.type = 'text'; text.placeholder = 'Что запланировано';
-      text.setAttribute('aria-label', 'Событие'); text.dataset.focus = '1';
-      let picked = '';
-      const sw = el('div', 'sw');
-      COLORS.forEach(c => {
-        const b = el('button', 'swb ' + c); b.type = 'button'; b.setAttribute('aria-label', 'Цвет');
-        if (c === '') b.classList.add('on');
-        b.onclick = () => { picked = c; sw.querySelectorAll('.swb').forEach(x => x.classList.toggle('on', x === b)); };
-        sw.append(b);
-      });
-      const r = el('div', 'row');
-      const ok = el('button', 'save', 'Сохранить'); ok.type = 'submit';
-      const no = el('button', 'cancel', 'Отмена'); no.type = 'button';
-      no.onclick = () => { openDay = null; render(); };
-      r.append(ok, no);
-      const chips = el('div', 'chips');
-      KINDS.forEach(kd => {
-        const b = el('button', 'chip', kd.icon); b.type = 'button';
-        b.title = kd.text; b.setAttribute('aria-label', kd.text);
-        b.onclick = () => {
-          (data[k] = data[k] || []).push({ id: Date.now() + Math.random(), time: time.value, title: kd.text, done: false, color: '', kind: kd.id });
-          save(); render();
-        };
-        chips.append(b);
-      });
-      f.append(time, text, chips, sw, r);
-      f.onsubmit = e => {
-        e.preventDefault();
-        const title = text.value.trim();
-        if (!title) { text.focus(); return; }
-        (data[k] = data[k] || []).push({ id: Date.now() + Math.random(), time: time.value, title, done: false, color: picked, kind: (KINDS.find(k => k.re.test(title)) || {}).id || '' });
-        save(); render();
-      };
-      f.onkeydown = e => { if (e.key === 'Escape') { openDay = null; render(); } };
-      col.append(f);
-    } else {
-      const b = el('button', 'addbtn', '+ Добавить');
-      b.onclick = () => { openDay = k; render(); };
-      col.append(b);
-    }
-    week.append(col);
-  }
-  const f = week.querySelector('[data-focus]');
-  if (f) f.focus();
+let vy = new Date().getFullYear(), vm = new Date().getMonth(), sel = null, lastAdded = null;
+const MFULL = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+const MONG = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+const FWD = ['Понедельник','Вторник','Среда','Четверг','Пятница','Суббота','Воскресенье'];
+const byTime = (a, b) => (a.time || '99:99').localeCompare(b.time || '99:99');
+function dayEvs(k) { return (data[k] || []).slice().sort(byTime); }
+function kindsOf(list) {
+  const r = [];
+  list.forEach(e => { const kd = kindOf(e); if (kd && !r.includes(kd)) r.push(kd); });
+  return r;
 }
 
-document.getElementById('prev').onclick = () => { monday.setDate(monday.getDate() - 7); openDay = null; render(); };
-document.getElementById('next').onclick = () => { monday.setDate(monday.getDate() + 7); openDay = null; render(); };
-document.getElementById('today').onclick = () => { monday = startOfWeek(new Date()); openDay = null; render(); };
-render();
+function renderMonth(dir) {
+  const box = document.getElementById('month');
+  const grid = el('div', 'grid' + (dir === 'r' || dir === 'l' ? ' go-' + dir : ''));
+  WD.forEach(w => grid.append(el('div', 'wh', w)));
+  const first = new Date(vy, vm, 1);
+  const days = new Date(vy, vm + 1, 0).getDate();
+  const weeks = Math.ceil((((first.getDay() + 6) % 7) + days) / 7);
+  const start = startOfWeek(first);
+  const todayKey = iso(new Date());
+  for (let i = 0; i < weeks * 7; i++) {
+    const d = new Date(start); d.setDate(start.getDate() + i);
+    const k = iso(d);
+    const evs = dayEvs(k), kinds = kindsOf(evs);
+    const c = el('button', 'cell' + (d.getMonth() !== vm ? ' out' : '') + (k === todayKey ? ' today' : '')
+      + (dayColors[k] ? ' dc d' + dayColors[k].slice(1) : '') + (kinds.length ? ' dk' : '') + (dir ? ' pop' : ''));
+    c.type = 'button';
+    c.setAttribute('aria-label', d.getDate() + ' ' + MONG[d.getMonth()]);
+    if (kinds.length) c.style.setProperty('--kc', kinds[0].color);
+    if (dir) c.style.animationDelay = (i * 10) + 'ms';
+    const top = el('div', 'ct');
+    top.append(el('span', 'dn2', d.getDate()));
+    if (kinds.length) top.append(el('span', 'ki', kinds.map(x => x.icon).join('')));
+    c.append(top);
+    const pv = el('div', 'pv');
+    evs.slice(0, 3).forEach(e => {
+      const kd = kindOf(e);
+      const p = el('div', 'pe' + (e.done ? ' done' : '') + (e.color ? ' ' + e.color : ''), (kd ? kd.icon + ' ' : '') + e.title);
+      if (!e.color && kd) p.style.setProperty('--c', kd.color);
+      pv.append(p);
+    });
+    if (evs.length > 3) pv.append(el('div', 'more', 'ещё ' + (evs.length - 3)));
+    c.append(pv);
+    const dots = el('div', 'dots');
+    evs.slice(0, 5).forEach(e => {
+      const kd = kindOf(e);
+      const p = el('span', 'pd' + (e.color ? ' ' + e.color : ''));
+      if (!e.color && kd) p.style.setProperty('--c', kd.color);
+      dots.append(p);
+    });
+    c.append(dots);
+    c.onclick = () => { sel = k; renderSheet(false); };
+    grid.append(c);
+  }
+  box.innerHTML = '';
+  box.append(grid);
+  document.getElementById('title').textContent = MFULL[vm] + ' ' + vy;
+}
+
+function addEv(k, time, title, color, kind) {
+  const ev = { id: Date.now() + Math.random(), time: time, title: title, done: false, color: color, kind: kind };
+  (data[k] = data[k] || []).push(ev);
+  lastAdded = ev.id;
+  save(); renderMonth(); renderSheet(true);
+}
+function refresh() { save(); renderMonth(); renderSheet(false); }
+
+function renderSheet(focus) {
+  const s = document.getElementById('sheet');
+  if (!sel) { s.hidden = true; s.innerHTML = ''; return; }
+  const fresh = s.hidden;
+  const k = sel;
+  const [Y, M, D] = k.split('-').map(Number);
+  const d = new Date(Y, M - 1, D);
+  s.hidden = false; s.innerHTML = '';
+  const p = el('div', 'panel' + (fresh ? ' rise' : ''));
+  p.setAttribute('role', 'dialog');
+
+  const ph = el('div', 'ph');
+  ph.append(el('h3', null, FWD[(d.getDay() + 6) % 7] + ', ' + d.getDate() + ' ' + MONG[d.getMonth()]));
+  const cl = el('button', 'x', '×'); cl.type = 'button'; cl.setAttribute('aria-label', 'Закрыть');
+  cl.style.opacity = 1; cl.style.fontSize = '26px';
+  cl.onclick = closeSheet;
+  ph.append(cl); p.append(ph);
+
+  p.append(el('div', 'lab', 'Цвет дня'));
+  const dsw = el('div', 'sw');
+  COLORS.forEach(c => {
+    const b = el('button', 'swb ' + c + ((dayColors[k] || '') === c ? ' on' : ''));
+    b.type = 'button'; b.setAttribute('aria-label', 'Цвет дня');
+    b.onclick = () => { if (c) dayColors[k] = c; else delete dayColors[k]; saveDays(); renderMonth(); renderSheet(false); };
+    dsw.append(b);
+  });
+  p.append(dsw);
+
+  const list = dayEvs(k);
+  p.append(el('div', 'lab', list.length ? 'Дела на день' : 'Пока ничего не запланировано'));
+  list.forEach(ev => {
+    const kd = kindOf(ev);
+    const row = el('div', 'ev' + (ev.done ? ' done' : '') + (ev.color ? ' ' + ev.color : '') + (ev.id === lastAdded ? ' pop' : ''));
+    if (ev.color) row.dataset.c = '1';
+    else if (kd) { row.dataset.c = '1'; row.style.setProperty('--c', kd.color); }
+    const body = el('div', 'body');
+    if (ev.time) body.append(el('span', 't', ev.time));
+    body.append(el('span', 'tt', (kd ? kd.icon + ' ' : '') + ev.title));
+    const dot = el('button', 'dot'); dot.type = 'button'; dot.title = 'Сменить цвет'; dot.setAttribute('aria-label', 'Сменить цвет');
+    dot.onclick = e => { e.stopPropagation(); ev.color = COLORS[(COLORS.indexOf(ev.color || '') + 1) % COLORS.length]; refresh(); };
+    const del = el('button', 'x', '×'); del.type = 'button'; del.title = 'Удалить'; del.setAttribute('aria-label', 'Удалить');
+    del.onclick = e => { e.stopPropagation(); data[k] = data[k].filter(x => x.id !== ev.id); refresh(); };
+    row.onclick = () => { ev.done = !ev.done; refresh(); };
+    row.append(dot, body, del);
+    p.append(row);
+  });
+  lastAdded = null;
+
+  p.append(el('div', 'lab', 'Добавить'));
+  const f = el('form');
+  const time = el('input'); time.type = 'time'; time.setAttribute('aria-label', 'Время');
+  const text = el('input'); text.type = 'text'; text.placeholder = 'Что запланировано'; text.setAttribute('aria-label', 'Событие');
+  const chips = el('div', 'chips');
+  KINDS.forEach(kd => {
+    const b = el('button', 'chip', kd.icon); b.type = 'button';
+    b.title = kd.text; b.setAttribute('aria-label', kd.text);
+    b.onclick = () => addEv(k, time.value, kd.text, '', kd.id);
+    chips.append(b);
+  });
+  let picked = '';
+  const sw = el('div', 'sw');
+  COLORS.forEach(c => {
+    const b = el('button', 'swb ' + c + (c === '' ? ' on' : '')); b.type = 'button'; b.setAttribute('aria-label', 'Цвет');
+    b.onclick = () => { picked = c; sw.querySelectorAll('.swb').forEach(x => x.classList.toggle('on', x === b)); };
+    sw.append(b);
+  });
+  const ok = el('button', 'save', 'Сохранить'); ok.type = 'submit';
+  f.append(time, text, chips, sw, ok);
+  f.onsubmit = e => {
+    e.preventDefault();
+    const t = text.value.trim();
+    if (!t) { text.focus(); return; }
+    addEv(k, time.value, t, picked, (KINDS.find(x => x.re.test(t)) || {}).id || '');
+  };
+  p.append(f);
+  s.append(p);
+  if (focus) text.focus();
+}
+function closeSheet() { sel = null; renderSheet(false); }
+document.getElementById('sheet').onclick = e => { if (e.target.id === 'sheet') closeSheet(); };
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && sel) closeSheet(); });
+
+function go(n) {
+  vm += n;
+  if (vm < 0) { vm = 11; vy--; }
+  if (vm > 11) { vm = 0; vy++; }
+  renderMonth(n > 0 ? 'r' : 'l');
+}
+document.getElementById('prev').onclick = () => go(-1);
+document.getElementById('next').onclick = () => go(1);
+document.getElementById('today').onclick = () => { vy = new Date().getFullYear(); vm = new Date().getMonth(); renderMonth('f'); };
+let sx = null;
+const mb = document.getElementById('month');
+mb.addEventListener('touchstart', e => { sx = e.touches[0].clientX; }, { passive: true });
+mb.addEventListener('touchend', e => {
+  if (sx == null) return;
+  const dx = e.changedTouches[0].clientX - sx; sx = null;
+  if (Math.abs(dx) > 70) go(dx < 0 ? 1 : -1);
+});
+renderMonth('f');
 
 const TKEY = 'planner-todo-v1';
 let todo = null;
