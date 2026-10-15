@@ -7,27 +7,27 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Планер">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="theme-color" content="#f6f7f9">
+<meta name="theme-color" content="#f6f6f7">
 <link rel="apple-touch-icon" href="icon.png">
 <title>Планер недели</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Jost:wght@300;400;500;600&display=swap">
 <style>
 :root{
-  --bg:#f6f7f9;--surface:#fff;--text:#1b2430;--muted:#7a8594;--line:#e3e7ec;
-  --accent:#2b59c3;--accent-soft:#eef2fb;--on-accent:#fff;
+  --bg:#f6f6f7;--surface:#fff;--text:#18181b;--muted:#9a9aa4;--line:#ececf0;
+  --accent:#18181b;--accent-soft:#f0f0f3;--on-accent:#fff;
   box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px);
   padding-bottom:env(safe-area-inset-bottom,0px);
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
-    --bg:#12161c;--surface:#181d25;--text:#e8ecf2;--muted:#8692a3;--line:#262d38;
-    --accent:#7d9cf0;--accent-soft:#1c2433;--on-accent:#12161c;color-scheme:dark;
+    --bg:#0f0f11;--surface:#17171a;--text:#efeff2;--muted:#8b8b95;--line:#26262b;
+    --accent:#efeff2;--accent-soft:#1f1f24;--on-accent:#0f0f11;color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#12161c;--surface:#181d25;--text:#e8ecf2;--muted:#8692a3;--line:#262d38;
-  --accent:#7d9cf0;--accent-soft:#1c2433;--on-accent:#12161c;color-scheme:dark;
+  --bg:#0f0f11;--surface:#17171a;--text:#efeff2;--muted:#8b8b95;--line:#26262b;
+  --accent:#efeff2;--accent-soft:#1f1f24;--on-accent:#0f0f11;color-scheme:dark;
 }
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box}
@@ -68,7 +68,7 @@ input{font:inherit;color:var(--text);background:var(--surface);border:1px solid 
 .row{display:flex;gap:6px}
 .save{flex:1;background:var(--accent);color:var(--on-accent);border:0;border-radius:10px;padding:7px 10px;font-weight:600}
 .cancel{background:none;border:1px solid var(--line);border-radius:10px;padding:7px 10px;color:var(--muted)}
-.c1{--c:#e5484d}.c2{--c:#f08c00}.c3{--c:#2f9e6b}.c4{--c:#2b59c3}.c5{--c:#8e5bd9}
+.c1{--c:#e5646b}.c2{--c:#e8a23b}.c3{--c:#4caf86}.c4{--c:#5b8def}.c5{--c:#9a7bea}
 .ev[data-c]{border-left:3px solid var(--c);background:color-mix(in srgb,var(--c) 14%,transparent)}
 .ev[data-c]:hover{background:color-mix(in srgb,var(--c) 24%,transparent)}
 .dot,.swb{border-radius:50%;padding:0;flex:none;background:var(--c,transparent);border:1.5px solid var(--c,var(--muted))}
@@ -76,7 +76,7 @@ input{font:inherit;color:var(--text);background:var(--surface);border:1px solid 
 .sw{display:flex;gap:9px;padding:2px}
 .swb{width:18px;height:18px}
 .swb.on{outline:2px solid var(--text);outline-offset:2px}
-.d1{--dc:#e5484d}.d2{--dc:#f08c00}.d3{--dc:#2f9e6b}.d4{--dc:#2b59c3}.d5{--dc:#8e5bd9}
+.d1{--dc:#e5646b}.d2{--dc:#e8a23b}.d3{--dc:#4caf86}.d4{--dc:#5b8def}.d5{--dc:#9a7bea}
 .dn{background:none;border:0;padding:0;color:inherit;font-family:inherit;cursor:pointer}
 .dn:hover{box-shadow:inset 0 0 0 1.5px var(--muted)}
 .day.dc{background:color-mix(in srgb,var(--dc) 10%,transparent)}
@@ -91,7 +91,7 @@ input{font:inherit;color:var(--text);background:var(--surface);border:1px solid 
 .cnt{color:var(--muted);font-size:13px}
 .ch .x,.it .x{opacity:.45}
 .ch .x:hover,.it .x:hover{opacity:1}
-.x.arm{opacity:1;color:#e5484d;font-size:13px}
+.x.arm{opacity:1;color:#e5646b;font-size:13px}
 .it{display:flex;align-items:center;gap:8px;padding:5px 2px}
 .it input{width:18px;height:18px;padding:0;accent-color:var(--accent);flex:none}
 .it span{flex:1;min-width:0;word-break:break-word}
@@ -135,9 +135,17 @@ input{font:inherit;color:var(--text);background:var(--surface);border:1px solid 
 .lab{font-size:13px;color:var(--muted);margin:12px 0 5px}
 .panel .ev{margin-bottom:2px}
 .sub{color:var(--muted);font-size:14px;margin-top:2px}
-.tabs{display:none;gap:4px;margin-top:20px;background:var(--line);padding:3px;border-radius:12px}
+.tabs{display:flex;max-width:440px;gap:4px;margin-top:20px;background:var(--line);padding:3px;border-radius:12px}
 .tabs button{flex:1;border:0;background:transparent;border-radius:9px;padding:8px;font:inherit;color:var(--muted);font-weight:600}
 .tabs button.on{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+#lower[data-tab="day"] #agenda{display:block}
+#lower[data-tab="day"] .todo{display:none}
+.todo h2,#agenda h2{display:none}
+#agenda .agr{align-items:center}
+#agenda .addbtn{margin-top:6px}
+.chk{flex:none;width:22px;height:22px;border-radius:50%;border:2px solid var(--muted);display:grid;place-items:center;font-size:13px;color:var(--on-accent)}
+.agr.done .chk{background:var(--accent);border-color:var(--accent)}
+.agr.done .agi{text-decoration:line-through;color:var(--muted)}
 textarea{font:13px/1.4 ui-monospace,Menlo,monospace;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px;width:100%;resize:vertical}
 .msg{font-size:13px;color:var(--accent);margin-top:6px;min-height:18px}
 .panel button.save,.panel button.cancel{width:100%;margin-top:8px}
@@ -151,7 +159,7 @@ textarea{font:13px/1.4 ui-monospace,Menlo,monospace;color:var(--text);background
 .agi.done{text-decoration:line-through;color:var(--muted)}
 #splash{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;animation:splashOut .45s ease 1.25s forwards}
 #splash .tile{width:112px;height:112px;border-radius:26px;background:var(--surface);box-shadow:0 12px 36px rgba(43,89,195,.3);overflow:hidden;display:flex;flex-direction:column;animation:iconIn .8s cubic-bezier(.2,.9,.3,1.2) backwards}
-#splash .tw{background:#e5484d;color:#fff;text-align:center;font-weight:700;font-size:14px;padding:7px 0 5px}
+#splash .tw{background:#e5646b;color:#fff;text-align:center;font-weight:700;font-size:14px;padding:7px 0 5px}
 #splash .tn{flex:1;display:grid;place-items:center;font-size:52px;font-weight:700;color:var(--text)}
 #splash .sn{font-size:20px;font-weight:700;letter-spacing:-.01em;animation:rise2 .5s ease .35s backwards}
 @keyframes iconIn{from{transform:scale(.4) rotate(-10deg);opacity:0}}
@@ -171,9 +179,6 @@ textarea{font:13px/1.4 ui-monospace,Menlo,monospace;color:var(--text);background
   .dn2{width:22px;height:22px;font-size:12px}
   .ki{display:none}
   .pe{font-size:10px;line-height:1.2;padding:1px 3px;border-left-width:2px;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word}
-  .tabs{display:flex}
-  #lower[data-tab="month"] #agenda{display:block}
-  #lower[data-tab="month"] .todo{display:none}
   .todo,#agenda{margin-top:14px}
   .todo h2,#agenda h2{display:none}
   .sheet{align-items:end;padding:0}
@@ -184,6 +189,64 @@ textarea{font:13px/1.4 ui-monospace,Menlo,monospace;color:var(--text);background
   .week{grid-template-columns:1fr}
   .day{border-left:0;border-top:1px solid var(--line);min-height:0}
   .day:first-child{border-top:0}
+}
+/* ---- refined minimal theme ---- */
+body{font:400 16px/1.45 "Jost",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{padding:28px 18px 56px}
+header{align-items:flex-end;margin-bottom:22px}
+h1{font:500 42px/1 "Cormorant Garamond",Georgia,serif;letter-spacing:-.01em}
+.yr{color:var(--muted);font-weight:400;margin-left:.25em}
+.sub{color:var(--muted);font-size:14px;margin-top:6px}
+nav{gap:2px}
+.nb{background:transparent;border:0;border-radius:10px;padding:8px 11px;min-width:38px;color:var(--text);font-size:16px}
+.nb:hover{background:var(--accent-soft)}
+#prev,#next{font-size:22px;line-height:1;padding:6px 12px}
+#today{font-size:14px;color:var(--muted)}
+.grid{gap:6px;background:none;border:0;border-radius:0;overflow:visible}
+.wh{background:none;padding:2px 4px 6px;font-size:12px;color:var(--muted);font-weight:400;letter-spacing:.02em}
+.cell{background:var(--surface);border-radius:14px;padding:8px;min-height:108px;gap:4px}
+.cell:hover{box-shadow:inset 0 0 0 1px var(--muted)}
+.cell.today:not(.dc):not(.dk){background:var(--surface)}
+.cell.dk:not(.dc){background:color-mix(in srgb,var(--kc) 11%,var(--surface))}
+.cell.dc{background:color-mix(in srgb,var(--dc) 10%,var(--surface))}
+.dn2{font-weight:500}
+.cell.today .dn2{background:var(--text);color:var(--bg)}
+.cell.dc .dn2{background:var(--dc);color:#fff}
+.cell.today.dc .dn2{outline:1.5px solid var(--text);outline-offset:2px}
+.pe{border-left:0;border-radius:6px;padding:2px 6px;font-size:12px;background:color-mix(in srgb,var(--c,var(--muted)) 15%,var(--surface))}
+.sheet{background:rgba(12,12,16,.35);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.panel{border-radius:26px;box-shadow:0 30px 80px rgba(0,0,0,.18);padding:22px 20px calc(20px + env(safe-area-inset-bottom,0px))}
+.ph h3{font:500 28px/1.1 "Cormorant Garamond",Georgia,serif}
+.lab{font-size:13px;color:var(--muted);margin:16px 0 6px}
+input,textarea{background:var(--bg);border:1px solid transparent;border-radius:12px;padding:10px 12px}
+input:focus,textarea:focus{outline:none;border-color:var(--muted)}
+.save{background:var(--accent);color:var(--on-accent);border-radius:12px;padding:11px 14px;font-weight:500}
+.cancel{border-radius:12px;padding:11px 14px}
+.chip{width:38px;height:38px;border-radius:50%;padding:0;display:grid;place-items:center;background:var(--bg);border:0;font-size:18px}
+.chip:hover{background:var(--accent-soft)}
+.swb{width:20px;height:20px}
+.ev{padding:9px 8px;border-radius:12px}
+.ev[data-c]{border-left:0;background:color-mix(in srgb,var(--c) 12%,var(--surface))}
+.ev[data-c]:hover{background:color-mix(in srgb,var(--c) 20%,var(--surface))}
+.ev .t{color:var(--muted);font-weight:500}
+.tabs{background:var(--line);border-radius:14px;padding:3px;margin-top:30px;max-width:360px}
+.tabs button{border-radius:11px;padding:9px;font-size:14px;font-weight:500}
+.tabs button.on{background:var(--surface);box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.cat{border:0;border-radius:20px;padding:18px}
+.ch h3{font:500 21px/1.1 "Cormorant Garamond",Georgia,serif}
+.agr{border:0;border-radius:16px;padding:12px 14px}
+.addbtn{border-radius:12px}
+#splash .tile{background:var(--surface);border-radius:28px;box-shadow:0 18px 48px rgba(0,0,0,.14)}
+#splash .tw{background:var(--text);color:var(--bg);font-size:13px;font-weight:500;letter-spacing:.04em;padding:8px 0 6px}
+#splash .tn{font:500 62px/1 "Cormorant Garamond",Georgia,serif}
+#splash .sn{font:500 26px/1 "Cormorant Garamond",Georgia,serif;color:var(--muted)}
+@media (max-width:700px){
+  .wrap{padding:20px 12px 48px}
+  h1{font-size:36px}
+  .grid{gap:3px}
+  .cell{border-radius:9px;padding:4px 3px;min-height:84px}
+  .dn2{width:22px;height:22px;font-size:12px}
+  .pe{font-size:10px;padding:1px 3px;border-radius:4px}
 }
 </style>
 </head>
@@ -202,7 +265,7 @@ textarea{font:13px/1.4 ui-monospace,Menlo,monospace;color:var(--text);background
   </header>
   <main id="month"></main>
   <div class="sheet" id="sheet" hidden></div>
-  <div class="tabs"><button id="tabL" type="button">Списки</button><button id="tabM" type="button">Дела месяца</button></div>
+  <div class="tabs"><button id="tabL" type="button">Списки</button><button id="tabM" type="button">Дела дня</button></div>
   <div id="lower" data-tab="lists">
   <section id="agenda"></section>
   <section class="todo">
@@ -220,14 +283,14 @@ const KEY = 'planner-week-v1';
 const WD = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
 const COLORS = ['', 'c1', 'c2', 'c3', 'c4', 'c5'];
 const KINDS = [
-  { id: 'clean',   icon: '🧹', name: 'Уборка',   text: 'Уборка',            color: '#2f9e6b', re: /убор|пылесос|протер/i },
-  { id: 'shop',    icon: '🛒', name: 'Продукты', text: 'Купить продукты',   color: '#f08c00', re: /продукт|магазин|супермаркет/i },
-  { id: 'laundry', icon: '🧺', name: 'Стирка',   text: 'Стирка',            color: '#2b8fc3', re: /стир|бельё|белье|гладить|утюг/i },
-  { id: 'cook',    icon: '🍲', name: 'Готовка',  text: 'Приготовить ужин',  color: '#e5484d', re: /приготов|готовк|готовить|ужин|обед/i },
-  { id: 'trash',   icon: '🗑️', name: 'Мусор',    text: 'Вынести мусор',     color: '#7a8594', re: /мусор/i },
-  { id: 'plants',  icon: '🪴', name: 'Цветы',    text: 'Полить цветы',      color: '#7cb342', re: /цветы|цветов|полить|растени/i },
-  { id: 'bills',   icon: '💳', name: 'Счета',    text: 'Оплатить счета',    color: '#8e5bd9', re: /оплат|счета|счёт|коммунал/i },
-  { id: 'sport',   icon: '🏃', name: 'Спорт',    text: 'Тренировка',        color: '#d6409f', re: /спорт|трениров|пробеж|бег/i }
+  { id: 'clean',   icon: '🧹', name: 'Уборка',   text: 'Уборка',            color: '#4caf86', re: /убор|пылесос|протер/i },
+  { id: 'shop',    icon: '🛒', name: 'Продукты', text: 'Купить продукты',   color: '#e8a23b', re: /продукт|магазин|супермаркет/i },
+  { id: 'laundry', icon: '🧺', name: 'Стирка',   text: 'Стирка',            color: '#5ba8d8', re: /стир|бельё|белье|гладить|утюг/i },
+  { id: 'cook',    icon: '🍲', name: 'Готовка',  text: 'Приготовить ужин',  color: '#e5646b', re: /приготов|готовк|готовить|ужин|обед/i },
+  { id: 'trash',   icon: '🗑️', name: 'Мусор',    text: 'Вынести мусор',     color: '#9aa0ab', re: /мусор/i },
+  { id: 'plants',  icon: '🪴', name: 'Цветы',    text: 'Полить цветы',      color: '#8bbf5a', re: /цветы|цветов|полить|растени/i },
+  { id: 'bills',   icon: '💳', name: 'Счета',    text: 'Оплатить счета',    color: '#9a7bea', re: /оплат|счета|счёт|коммунал/i },
+  { id: 'sport',   icon: '🏃', name: 'Спорт',    text: 'Тренировка',        color: '#e0709f', re: /спорт|трениров|пробеж|бег/i }
 ];
 function kindOf(e) {
   return KINDS.find(k => k.id === e.kind) || (e.kind == null ? KINDS.find(k => k.re.test(e.title)) : null) || null;
@@ -304,36 +367,34 @@ function renderMonth(dir) {
   }
   box.innerHTML = '';
   box.append(grid);
-  document.getElementById('title').textContent = MFULL[vm] + ' ' + vy;
+  const tt = document.getElementById('title');
+  tt.textContent = MFULL[vm];
+  tt.append(el('span', 'yr', String(vy)));
   renderAgenda();
 }
 
 function renderAgenda() {
   const a = document.getElementById('agenda');
   a.innerHTML = '';
-  a.append(el('h2', null, 'Дела месяца'));
+  const now = new Date(), k = iso(now);
+  a.append(el('h2', null, 'Дела дня'));
   const box = el('div', 'ag');
-  const days = new Date(vy, vm + 1, 0).getDate();
-  let any = false;
-  for (let n = 1; n <= days; n++) {
-    const dd = new Date(vy, vm, n), k = iso(dd), evs = dayEvs(k);
-    if (!evs.length) continue;
-    any = true;
-    const row = el('button', 'agr'); row.type = 'button';
-    row.append(el('span', 'agd', n + ' ' + MON[vm] + ', ' + WD[(dd.getDay() + 6) % 7]));
-    const col = el('span', 'agl');
-    evs.forEach(e => {
-      const kd = kindOf(e);
-      const li = el('span', 'agi' + (e.done ? ' done' : '') + (e.color ? ' ' + e.color : ''),
-        (e.time ? e.time + ' ' : '') + (kd ? kd.icon + ' ' : '') + e.title);
-      if (!e.color && kd) li.style.setProperty('--c', kd.color);
-      col.append(li);
-    });
-    row.append(col);
-    row.onclick = () => { sel = k; renderSheet(false); };
+  box.append(el('div', 'lab', FWD[(now.getDay() + 6) % 7] + ', ' + now.getDate() + ' ' + MONG[now.getMonth()]));
+  const evs = dayEvs(k);
+  if (!evs.length) box.append(el('div', 'lab', 'На сегодня ничего не запланировано'));
+  evs.forEach(e => {
+    const kd = kindOf(e);
+    const row = el('button', 'agr' + (e.done ? ' done' : '')); row.type = 'button';
+    const li = el('span', 'agi' + (e.color ? ' ' + e.color : ''), (e.time ? e.time + '  ' : '') + (kd ? kd.icon + ' ' : '') + e.title);
+    if (!e.color && kd) li.style.setProperty('--c', kd.color);
+    li.style.flex = '1';
+    row.append(el('span', 'chk', e.done ? '✓' : ''), li);
+    row.onclick = () => { e.done = !e.done; save(); renderMonth(); renderSheet(false); };
     box.append(row);
-  }
-  if (!any) box.append(el('div', 'lab', 'В этом месяце пока ничего не запланировано'));
+  });
+  const add = el('button', 'addbtn', '+ Добавить на сегодня'); add.type = 'button';
+  add.onclick = () => { sel = k; renderSheet(false); };
+  box.append(add);
   a.append(box);
 }
 
@@ -524,18 +585,19 @@ document.getElementById('catform').onsubmit = e => {
   saveTodo(); renderTodo();
 };
 renderTodo();
-const VER = '3';
+const VER = '5';
 let tab = 'lists';
 try { tab = localStorage.getItem('planner-tab') || 'lists'; } catch (e) {}
 function setTab(t) {
   tab = t;
   document.getElementById('lower').dataset.tab = t;
   document.getElementById('tabL').classList.toggle('on', t === 'lists');
-  document.getElementById('tabM').classList.toggle('on', t === 'month');
+  document.getElementById('tabM').classList.toggle('on', t === 'day');
   try { localStorage.setItem('planner-tab', t); } catch (e) {}
 }
 document.getElementById('tabL').onclick = () => setTab('lists');
-document.getElementById('tabM').onclick = () => setTab('month');
+document.getElementById('tabM').onclick = () => setTab('day');
+if (tab !== 'day') tab = 'lists';
 setTab(tab);
 
 function updateSub() {
