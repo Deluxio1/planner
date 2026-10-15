@@ -240,6 +240,8 @@ input:focus,textarea:focus{outline:none;border-color:var(--muted)}
 #splash .tw{background:var(--text);color:var(--bg);font-size:13px;font-weight:500;letter-spacing:.04em;padding:8px 0 6px}
 #splash .tn{font:500 62px/1 "Cormorant Garamond",Georgia,serif}
 #splash .sn{font:500 26px/1 "Cormorant Garamond",Georgia,serif;color:var(--muted)}
+.cell.sel{box-shadow:inset 0 0 0 1.5px var(--text)}
+.adt{font:500 28px/1.1 "Cormorant Garamond",Georgia,serif;margin:4px 0 8px}
 @media (max-width:700px){
   .wrap{padding:20px 12px 48px}
   h1{font-size:36px}
@@ -319,7 +321,7 @@ const DKEY = 'planner-days-v1';
 let dayColors = {};
 try { dayColors = JSON.parse(localStorage.getItem(DKEY) || '{}') || {}; } catch (e) { dayColors = {}; }
 function saveDays() { try { localStorage.setItem(DKEY, JSON.stringify(dayColors)); } catch (e) {} }
-let vy = new Date().getFullYear(), vm = new Date().getMonth(), sel = null, lastAdded = null;
+let vy = new Date().getFullYear(), vm = new Date().getMonth(), sel = null, lastAdded = null, pick = iso(new Date());
 const MFULL = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
 const MONG = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
 const FWD = ['Понедельник','Вторник','Среда','Четверг','Пятница','Суббота','Воскресенье'];
@@ -345,7 +347,7 @@ function renderMonth(dir) {
     const k = iso(d);
     const evs = dayEvs(k), kinds = kindsOf(evs);
     const c = el('button', 'cell' + (d.getMonth() !== vm ? ' out' : '') + (k === todayKey ? ' today' : '')
-      + (dayColors[k] ? ' dc d' + dayColors[k].slice(1) : '') + (kinds.length ? ' dk' : '') + (dir ? ' pop' : ''));
+      + (dayColors[k] ? ' dc d' + dayColors[k].slice(1) : '') + (kinds.length ? ' dk' : '') + (k === pick ? ' sel' : '') + (dir ? ' pop' : ''));
     c.type = 'button';
     c.setAttribute('aria-label', d.getDate() + ' ' + MONG[d.getMonth()]);
     if (kinds.length) c.style.setProperty('--kc', kinds[0].color);
@@ -362,7 +364,11 @@ function renderMonth(dir) {
       pv.append(p);
     });
     c.append(pv);
-    c.onclick = () => { sel = k; renderSheet(false); };
+    c.onclick = () => {
+      pick = k; setTab('day'); renderMonth();
+      const tb = document.querySelector('.tabs');
+      if (tb) tb.scrollIntoView({ behavior: 'smooth', block: window.innerWidth <= 700 ? 'start' : 'nearest' });
+    };
     grid.append(c);
   }
   box.innerHTML = '';
@@ -376,12 +382,15 @@ function renderMonth(dir) {
 function renderAgenda() {
   const a = document.getElementById('agenda');
   a.innerHTML = '';
-  const now = new Date(), k = iso(now);
+  const k = pick;
+  const [Y, M, D] = k.split('-').map(Number);
+  const d = new Date(Y, M - 1, D);
+  const isToday = k === iso(new Date());
   a.append(el('h2', null, 'Дела дня'));
   const box = el('div', 'ag');
-  box.append(el('div', 'lab', FWD[(now.getDay() + 6) % 7] + ', ' + now.getDate() + ' ' + MONG[now.getMonth()]));
+  box.append(el('div', 'adt', FWD[(d.getDay() + 6) % 7] + ', ' + d.getDate() + ' ' + MONG[d.getMonth()]));
   const evs = dayEvs(k);
-  if (!evs.length) box.append(el('div', 'lab', 'На сегодня ничего не запланировано'));
+  if (!evs.length) box.append(el('div', 'lab', isToday ? 'На сегодня ничего не запланировано' : 'На этот день ничего не запланировано'));
   evs.forEach(e => {
     const kd = kindOf(e);
     const row = el('button', 'agr' + (e.done ? ' done' : '')); row.type = 'button';
@@ -392,7 +401,7 @@ function renderAgenda() {
     row.onclick = () => { e.done = !e.done; save(); renderMonth(); renderSheet(false); };
     box.append(row);
   });
-  const add = el('button', 'addbtn', '+ Добавить на сегодня'); add.type = 'button';
+  const add = el('button', 'addbtn', isToday ? '+ Добавить на сегодня' : '+ Добавить на этот день'); add.type = 'button';
   add.onclick = () => { sel = k; renderSheet(false); };
   box.append(add);
   a.append(box);
@@ -496,7 +505,7 @@ function go(n) {
 }
 document.getElementById('prev').onclick = () => go(-1);
 document.getElementById('next').onclick = () => go(1);
-document.getElementById('today').onclick = () => { vy = new Date().getFullYear(); vm = new Date().getMonth(); renderMonth('f'); };
+document.getElementById('today').onclick = () => { vy = new Date().getFullYear(); vm = new Date().getMonth(); pick = iso(new Date()); renderMonth('f'); };
 let sx = null;
 const mb = document.getElementById('month');
 mb.addEventListener('touchstart', e => { sx = e.touches[0].clientX; }, { passive: true });
@@ -585,7 +594,7 @@ document.getElementById('catform').onsubmit = e => {
   saveTodo(); renderTodo();
 };
 renderTodo();
-const VER = '5';
+const VER = '6';
 let tab = 'lists';
 try { tab = localStorage.getItem('planner-tab') || 'lists'; } catch (e) {}
 function setTab(t) {
@@ -609,7 +618,15 @@ function updateSub() {
   if (b) b.textContent = n.getDate();
 }
 updateSub();
-document.addEventListener('visibilitychange', () => { if (!document.hidden) { updateSub(); renderMonth(); } });
+let lastToday = iso(new Date());
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) {
+    const t = iso(new Date());
+    if (pick === lastToday) pick = t;
+    lastToday = t;
+    updateSub(); renderMonth();
+  }
+});
 
 document.getElementById('rf').onclick = () => {
   fetch(location.pathname, { cache: 'reload' }).catch(() => {}).finally(() => location.reload());
