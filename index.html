@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -220,7 +220,7 @@ textarea{font:13px/1.4 ui-monospace,Menlo,monospace;resize:vertical}
     <div class="cats" id="cats"></div>
     <form class="newcat" id="catform">
       <input id="catname" type="text" placeholder="Новый раздел, например «Работа»" aria-label="Название раздела">
-      <button class="save" type="submit">Создать раздел</button>
+      <button class="save" type="button" id="catadd">Создать раздел</button>
     </form>
   </section>
   </div>
@@ -590,17 +590,20 @@ function renderTodo() {
   }
 }
 
-document.getElementById('catform').onsubmit = e => {
-  e.preventDefault();
+// The button works without form submission, which some phone browsers block.
+function addCat() {
   const inp = document.getElementById('catname');
   const name = inp.value.trim();
-  if (!name) return;
+  if (!name) { inp.focus(); return; }
   todo.push({ id: 'c' + Date.now(), name, days: {} });
   inp.value = '';
+  inp.blur();
   saveTodo(); renderTodo();
-};
+}
+document.getElementById('catadd').onclick = addCat;
+document.getElementById('catform').onsubmit = e => { e.preventDefault(); addCat(); };
 renderTodo();
-const VER = '14';
+const VER = '15';
 let tab = 'lists';
 try { tab = localStorage.getItem('planner-tab') || 'lists'; } catch (e) {}
 function setTab(t) {
