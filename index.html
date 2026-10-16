@@ -174,11 +174,16 @@ textarea{font:13px/1.4 ui-monospace,Menlo,monospace;resize:vertical}
   h1{font-size:32px}
   .grid{gap:3px}
   .wh{padding:0 3px 3px;font-size:11px}
-  .cell{min-height:64px;padding:6px 4px;border-radius:8px}
-  .dn2{font-size:12px}
-  .pv{flex-direction:row;flex-wrap:wrap;gap:3px}
-  .ptx{display:none}
-  .sq{width:10px;height:10px}
+  .cell{min-height:84px;padding:5px 3px;border-radius:8px;gap:4px}
+  .dn2{font-size:12px;padding-left:2px}
+  .pv{gap:2px}
+  /* phones: each chore is a small tinted label with time on top */
+  .pe{display:block;white-space:normal;font-size:10px;line-height:1.2;padding:2px 3px;border-radius:4px;
+    background:color-mix(in srgb,var(--c,var(--rose)) 30%,var(--surface))}
+  .cell.today .pe{background:var(--surface);color:var(--text)}
+  .sq{display:none}
+  .ptx{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word;hyphens:auto}
+  .pt{display:block;margin:0;opacity:.75}
   .sheet{align-items:end;padding:0}
   .panel{width:100%;border-radius:24px 24px 0 0;max-height:88%}
 }
@@ -548,7 +553,7 @@ document.getElementById('catform').onsubmit = e => {
   saveTodo(); renderTodo();
 };
 renderTodo();
-const VER = '11';
+const VER = '12';
 let tab = 'lists';
 try { tab = localStorage.getItem('planner-tab') || 'lists'; } catch (e) {}
 function setTab(t) {
