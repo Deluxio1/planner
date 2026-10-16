@@ -2,6 +2,8 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -11,7 +13,7 @@
 <link rel="apple-touch-icon" href="icon.png">
 <title>Планер недели</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&family=Unbounded:wght@500;700&display=swap">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" integrity="sha384-hs5SINUk7GPohxRis+rS7grpSWEbtOIJ3sRoseBKg3CDPIKpG55RfSenbvA6ALOt" crossorigin="anonymous">
 <style>
 :root{
   --bg:#fbf1f2;--surface:#fffcfc;--mist:#f6dde3;--we:#f8e7eb;--line:#f0e1e5;--scrim:rgba(40,18,28,.32);
@@ -241,8 +243,52 @@ function kindOf(e) {
   return KINDS.find(k => k.id === e.kind) || (e.kind == null ? KINDS.find(k => k.re.test(e.title)) : null) || null;
 }
 const MON = ['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'];
+// Stored and restored data is untrusted: keep only well-formed fields so a
+// broken backup can't stop the page from rendering.
+const isObj = v => v && typeof v === 'object' && !Array.isArray(v);
+const isDay = k => /^\d{4}-\d{2}-\d{2}$/.test(k);
+const newId = () => Date.now() + Math.random();
+function cleanData(o) {
+  const r = {};
+  if (!isObj(o)) return r;
+  Object.keys(o).forEach(k => {
+    if (!isDay(k) || !Array.isArray(o[k])) return;
+    const list = o[k].filter(isObj).map(e => ({
+      id: typeof e.id === 'number' || typeof e.id === 'string' ? e.id : newId(),
+      time: typeof e.time === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(e.time) ? e.time : '',
+      title: String(e.title == null ? '' : e.title).slice(0, 500),
+      done: !!e.done,
+      color: COLORS.includes(e.color) ? e.color : '',
+      kind: typeof e.kind === 'string' ? e.kind : null
+    }));
+    if (list.length) r[k] = list;
+  });
+  return r;
+}
+function cleanDays(o) {
+  const r = {};
+  if (isObj(o)) Object.keys(o).forEach(k => { if (isDay(k) && o[k] && COLORS.includes(o[k])) r[k] = o[k]; });
+  return r;
+}
+function cleanItems(a) {
+  return Array.isArray(a) ? a.filter(isObj).map(it => ({
+    id: typeof it.id === 'number' || typeof it.id === 'string' ? it.id : newId(),
+    text: String(it.text == null ? '' : it.text).slice(0, 500),
+    done: !!it.done
+  })) : [];
+}
+function cleanTodo(a) {
+  if (!Array.isArray(a)) return null;
+  return a.filter(isObj).map((c, i) => {
+    const days = {};
+    if (isObj(c.days)) Object.keys(c.days).forEach(k => { if (isDay(k)) { const l = cleanItems(c.days[k]); if (l.length) days[k] = l; } });
+    const cat = { id: String(c.id == null ? '' : c.id).replace(/[^\w-]/g, '').slice(0, 40) || 'c' + i + '-' + Date.now(), name: String(c.name == null ? '' : c.name).slice(0, 200), days: days };
+    if (Array.isArray(c.items)) cat.items = cleanItems(c.items);
+    return cat;
+  });
+}
 let data = {};
-try { data = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { data = {}; }
+try { data = cleanData(JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) { data = {}; }
 function save() { try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) {} }
 
 function startOfWeek(d) {
@@ -262,7 +308,7 @@ function el(tag, cls, text) {
 
 const DKEY = 'planner-days-v1';
 let dayColors = {};
-try { dayColors = JSON.parse(localStorage.getItem(DKEY) || '{}') || {}; } catch (e) { dayColors = {}; }
+try { dayColors = cleanDays(JSON.parse(localStorage.getItem(DKEY) || '{}')); } catch (e) { dayColors = {}; }
 function saveDays() { try { localStorage.setItem(DKEY, JSON.stringify(dayColors)); } catch (e) {} }
 let vy = new Date().getFullYear(), vm = new Date().getMonth(), sel = null, lastAdded = null, pick = iso(new Date());
 const MFULL = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
@@ -462,7 +508,7 @@ renderMonth('f');
 
 const TKEY = 'planner-todo-v1';
 let todo = null;
-try { todo = JSON.parse(localStorage.getItem(TKEY) || 'null'); } catch (e) { todo = null; }
+try { todo = cleanTodo(JSON.parse(localStorage.getItem(TKEY) || 'null')); } catch (e) { todo = null; }
 if (!Array.isArray(todo)) {
   todo = [
     { id: 'c-home', name: 'Домашние дела', days: {} },
@@ -538,7 +584,7 @@ function renderTodo() {
     box.append(c);
   });
   if (todoFocus) {
-    const n = box.querySelector('[data-tf="' + todoFocus + '"]');
+    const n = [...box.querySelectorAll('[data-tf]')].find(x => x.dataset.tf === String(todoFocus));
     if (n) n.focus();
     todoFocus = null;
   }
@@ -554,7 +600,7 @@ document.getElementById('catform').onsubmit = e => {
   saveTodo(); renderTodo();
 };
 renderTodo();
-const VER = '13';
+const VER = '14';
 let tab = 'lists';
 try { tab = localStorage.getItem('planner-tab') || 'lists'; } catch (e) {}
 function setTab(t) {
@@ -631,15 +677,21 @@ document.getElementById('bk').onclick = () => {
   p.append(inp);
   const rs = el('button', 'cancel', 'Заменить данные из текста'); rs.type = 'button';
   rs.onclick = () => {
+    let o;
+    try { o = JSON.parse(inp.value.trim()); } catch (e) { o = null; }
+    if (!isObj(o) || !isObj(o.data)) { msg.textContent = 'Не получилось прочитать текст. Скопируй его целиком.'; return; }
+    const prev = [data, dayColors, todo];
     try {
-      const o = JSON.parse(inp.value.trim());
-      if (!o || typeof o !== 'object' || !o.data) throw new Error('bad');
-      data = o.data; dayColors = o.dayColors || {};
-      if (Array.isArray(o.todo)) { todo = o.todo; migrateTodo(); }
-      save(); saveDays(); saveTodo(); renderMonth(); renderTodo();
+      data = cleanData(o.data); dayColors = cleanDays(o.dayColors);
+      const t = cleanTodo(o.todo);
+      if (t) { todo = t; migrateTodo(); }
+      renderMonth(); renderTodo();
+      save(); saveDays(); saveTodo();
       msg.textContent = 'Данные восстановлены.';
     } catch (e) {
-      msg.textContent = 'Не получилось прочитать текст. Скопируй его целиком.';
+      [data, dayColors, todo] = prev;
+      renderMonth(); renderTodo();
+      msg.textContent = 'В тексте ошибка, данные не заменены.';
     }
   };
   p.append(rs, msg);
