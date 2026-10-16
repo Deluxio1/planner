@@ -7,27 +7,27 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Планер">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="theme-color" content="#f6f6f7">
+<meta name="theme-color" content="#fbf5f4">
 <link rel="apple-touch-icon" href="icon.png">
 <title>Планер недели</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Jost:wght@300;400;500;600&display=swap">
 <style>
 :root{
-  --bg:#f6f6f7;--surface:#fff;--text:#18181b;--muted:#9a9aa4;--line:#ececf0;
-  --accent:#18181b;--accent-soft:#f0f0f3;--on-accent:#fff;
+  --bg:#fbf5f4;--surface:#fffdfc;--text:#3b2d33;--muted:#a8979e;--line:#f3e6e6;
+  --accent:#ecb0bd;--accent-strong:#c9788d;--accent-soft:#fbe9ed;--on-accent:#4a2631;
   box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px);
   padding-bottom:env(safe-area-inset-bottom,0px);
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
-    --bg:#0f0f11;--surface:#17171a;--text:#efeff2;--muted:#8b8b95;--line:#26262b;
-    --accent:#efeff2;--accent-soft:#1f1f24;--on-accent:#0f0f11;color-scheme:dark;
+    --bg:#1c1618;--surface:#261e21;--text:#f4e9ed;--muted:#a3929b;--line:#352a2e;
+    --accent:#e9a9b8;--accent-strong:#f0b8c6;--accent-soft:#34242b;--on-accent:#3a1f28;color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#0f0f11;--surface:#17171a;--text:#efeff2;--muted:#8b8b95;--line:#26262b;
-  --accent:#efeff2;--accent-soft:#1f1f24;--on-accent:#0f0f11;color-scheme:dark;
+  --bg:#1c1618;--surface:#261e21;--text:#f4e9ed;--muted:#a3929b;--line:#352a2e;
+  --accent:#e9a9b8;--accent-strong:#f0b8c6;--accent-soft:#34242b;--on-accent:#3a1f28;color-scheme:dark;
 }
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box}
@@ -68,7 +68,7 @@ input{font:inherit;color:var(--text);background:var(--surface);border:1px solid 
 .row{display:flex;gap:6px}
 .save{flex:1;background:var(--accent);color:var(--on-accent);border:0;border-radius:10px;padding:7px 10px;font-weight:600}
 .cancel{background:none;border:1px solid var(--line);border-radius:10px;padding:7px 10px;color:var(--muted)}
-.c1{--c:#e5646b}.c2{--c:#e8a23b}.c3{--c:#4caf86}.c4{--c:#5b8def}.c5{--c:#9a7bea}
+.c1{--c:#ee9b92}.c2{--c:#f2b97c}.c3{--c:#8fcaa8}.c4{--c:#8cb9e6}.c5{--c:#b7a3e6}
 .ev[data-c]{border-left:3px solid var(--c);background:color-mix(in srgb,var(--c) 14%,transparent)}
 .ev[data-c]:hover{background:color-mix(in srgb,var(--c) 24%,transparent)}
 .dot,.swb{border-radius:50%;padding:0;flex:none;background:var(--c,transparent);border:1.5px solid var(--c,var(--muted))}
@@ -76,7 +76,7 @@ input{font:inherit;color:var(--text);background:var(--surface);border:1px solid 
 .sw{display:flex;gap:9px;padding:2px}
 .swb{width:18px;height:18px}
 .swb.on{outline:2px solid var(--text);outline-offset:2px}
-.d1{--dc:#e5646b}.d2{--dc:#e8a23b}.d3{--dc:#4caf86}.d4{--dc:#5b8def}.d5{--dc:#9a7bea}
+.d1{--dc:#ee9b92}.d2{--dc:#f2b97c}.d3{--dc:#8fcaa8}.d4{--dc:#8cb9e6}.d5{--dc:#b7a3e6}
 .dn{background:none;border:0;padding:0;color:inherit;font-family:inherit;cursor:pointer}
 .dn:hover{box-shadow:inset 0 0 0 1.5px var(--muted)}
 .day.dc{background:color-mix(in srgb,var(--dc) 10%,transparent)}
@@ -91,7 +91,7 @@ input{font:inherit;color:var(--text);background:var(--surface);border:1px solid 
 .cnt{color:var(--muted);font-size:13px}
 .ch .x,.it .x{opacity:.45}
 .ch .x:hover,.it .x:hover{opacity:1}
-.x.arm{opacity:1;color:#e5646b;font-size:13px}
+.x.arm{opacity:1;color:#ee9b92;font-size:13px}
 .it{display:flex;align-items:center;gap:8px;padding:5px 2px}
 .it input{width:18px;height:18px;padding:0;accent-color:var(--accent);flex:none}
 .it span{flex:1;min-width:0;word-break:break-word}
@@ -159,7 +159,7 @@ textarea{font:13px/1.4 ui-monospace,Menlo,monospace;color:var(--text);background
 .agi.done{text-decoration:line-through;color:var(--muted)}
 #splash{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;animation:splashOut .45s ease 1.25s forwards}
 #splash .tile{width:112px;height:112px;border-radius:26px;background:var(--surface);box-shadow:0 12px 36px rgba(43,89,195,.3);overflow:hidden;display:flex;flex-direction:column;animation:iconIn .8s cubic-bezier(.2,.9,.3,1.2) backwards}
-#splash .tw{background:#e5646b;color:#fff;text-align:center;font-weight:700;font-size:14px;padding:7px 0 5px}
+#splash .tw{background:#ee9b92;color:#fff;text-align:center;font-weight:700;font-size:14px;padding:7px 0 5px}
 #splash .tn{flex:1;display:grid;place-items:center;font-size:52px;font-weight:700;color:var(--text)}
 #splash .sn{font-size:20px;font-weight:700;letter-spacing:-.01em;animation:rise2 .5s ease .35s backwards}
 @keyframes iconIn{from{transform:scale(.4) rotate(-10deg);opacity:0}}
@@ -250,6 +250,51 @@ input:focus,textarea:focus{outline:none;border-color:var(--muted)}
   .dn2{width:22px;height:22px;font-size:12px}
   .pe{font-size:10px;padding:1px 3px;border-radius:4px}
 }
+/* ---- pastel theme ---- */
+h1{font-size:46px}
+.yr{color:var(--accent-strong)}
+#today{background:var(--accent-soft);color:var(--accent-strong);border-radius:999px;padding:7px 15px;font-weight:500;margin:0 4px}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent-strong);outline-offset:2px}
+.wh:nth-child(6),.wh:nth-child(7){color:var(--accent-strong)}
+.cell{border-radius:18px;box-shadow:0 1px 2px rgba(150,90,105,.07)}
+.cell:hover{box-shadow:inset 0 0 0 1.5px var(--accent)}
+.cell.sel{box-shadow:inset 0 0 0 1.5px var(--accent-strong)}
+.cell.today .dn2{background:var(--accent);color:var(--on-accent)}
+.cell.dc .dn2{background:var(--dc);color:var(--text)}
+.cell.today.dc .dn2{outline:1.5px solid var(--accent-strong);outline-offset:2px}
+.cell.dk:not(.dc){background:color-mix(in srgb,var(--kc) 22%,var(--surface))}
+.cell.dc{background:color-mix(in srgb,var(--dc) 20%,var(--surface))}
+.pe{background:color-mix(in srgb,var(--c,var(--accent)) 32%,var(--surface));color:var(--text)}
+.sheet{background:rgba(70,40,50,.28)}
+.panel{border-radius:30px;box-shadow:0 30px 80px rgba(150,80,100,.22)}
+.ph h3{font-size:30px}
+input:focus,textarea:focus{border-color:var(--accent)}
+.save{background:var(--accent);color:var(--on-accent);font-weight:600}
+.cancel{color:var(--accent-strong);border-color:var(--accent-soft)}
+.x.arm{color:var(--accent-strong)}
+.swb{width:24px;height:24px}
+.swb.on{outline:2px solid var(--accent-strong);outline-offset:2px}
+.ev[data-c]{background:color-mix(in srgb,var(--c) 24%,var(--surface))}
+.ev[data-c]:hover{background:color-mix(in srgb,var(--c) 34%,var(--surface))}
+.tabs{background:var(--accent-soft)}
+.tabs button{color:var(--accent-strong)}
+.tabs button.on{background:var(--surface);color:var(--text);box-shadow:0 2px 6px rgba(150,80,100,.12)}
+.adt{font-size:32px}
+.adt::after{content:"";display:block;width:38px;height:3px;border-radius:3px;background:var(--accent);margin-top:8px}
+.agr{border-radius:20px;box-shadow:0 1px 2px rgba(150,90,105,.07)}
+.chk{border-color:var(--accent-strong)}
+.agr.done .chk{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.cat{border-radius:24px;box-shadow:0 1px 2px rgba(150,90,105,.07)}
+.ch h3{font-size:22px}
+.it input{accent-color:var(--accent-strong)}
+.addbtn{border-color:var(--accent);color:var(--accent-strong)}
+.addbtn:hover{background:var(--accent-soft)}
+#splash{background:radial-gradient(circle at 50% 42%,var(--accent-soft),var(--bg) 62%)}
+#splash .tile{border-radius:30px;box-shadow:0 24px 60px rgba(201,120,141,.28)}
+#splash .tw{background:var(--accent);color:var(--on-accent);letter-spacing:.06em}
+#splash .tn{font-size:64px}
+#splash .sn{color:var(--accent-strong)}
+@media (max-width:700px){h1{font-size:38px}.cell{border-radius:11px}}
 </style>
 </head>
 <body>
@@ -285,14 +330,14 @@ const KEY = 'planner-week-v1';
 const WD = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
 const COLORS = ['', 'c1', 'c2', 'c3', 'c4', 'c5'];
 const KINDS = [
-  { id: 'clean',   icon: '🧹', name: 'Уборка',   text: 'Уборка',            color: '#4caf86', re: /убор|пылесос|протер/i },
-  { id: 'shop',    icon: '🛒', name: 'Продукты', text: 'Купить продукты',   color: '#e8a23b', re: /продукт|магазин|супермаркет/i },
-  { id: 'laundry', icon: '🧺', name: 'Стирка',   text: 'Стирка',            color: '#5ba8d8', re: /стир|бельё|белье|гладить|утюг/i },
-  { id: 'cook',    icon: '🍲', name: 'Готовка',  text: 'Приготовить ужин',  color: '#e5646b', re: /приготов|готовк|готовить|ужин|обед/i },
-  { id: 'trash',   icon: '🗑️', name: 'Мусор',    text: 'Вынести мусор',     color: '#9aa0ab', re: /мусор/i },
-  { id: 'plants',  icon: '🪴', name: 'Цветы',    text: 'Полить цветы',      color: '#8bbf5a', re: /цветы|цветов|полить|растени/i },
-  { id: 'bills',   icon: '💳', name: 'Счета',    text: 'Оплатить счета',    color: '#9a7bea', re: /оплат|счета|счёт|коммунал/i },
-  { id: 'sport',   icon: '🏃', name: 'Спорт',    text: 'Тренировка',        color: '#e0709f', re: /спорт|трениров|пробеж|бег/i }
+  { id: 'clean',   icon: '🧹', name: 'Уборка',   text: 'Уборка',            color: '#8fcaa8', re: /убор|пылесос|протер/i },
+  { id: 'shop',    icon: '🛒', name: 'Продукты', text: 'Купить продукты',   color: '#f2b97c', re: /продукт|магазин|супермаркет/i },
+  { id: 'laundry', icon: '🧺', name: 'Стирка',   text: 'Стирка',            color: '#97c4e8', re: /стир|бельё|белье|гладить|утюг/i },
+  { id: 'cook',    icon: '🍲', name: 'Готовка',  text: 'Приготовить ужин',  color: '#ee9b92', re: /приготов|готовк|готовить|ужин|обед/i },
+  { id: 'trash',   icon: '🗑️', name: 'Мусор',    text: 'Вынести мусор',     color: '#b9b0b4', re: /мусор/i },
+  { id: 'plants',  icon: '🪴', name: 'Цветы',    text: 'Полить цветы',      color: '#b5d58f', re: /цветы|цветов|полить|растени/i },
+  { id: 'bills',   icon: '💳', name: 'Счета',    text: 'Оплатить счета',    color: '#b7a3e6', re: /оплат|счета|счёт|коммунал/i },
+  { id: 'sport',   icon: '🏃', name: 'Спорт',    text: 'Тренировка',        color: '#eaa0bd', re: /спорт|трениров|пробеж|бег/i }
 ];
 function kindOf(e) {
   return KINDS.find(k => k.id === e.kind) || (e.kind == null ? KINDS.find(k => k.re.test(e.title)) : null) || null;
@@ -327,7 +372,7 @@ const MONG = ['января','февраля','марта','апреля','ма�
 const FWD = ['Понедельник','Вторник','Среда','Четверг','Пятница','Суббота','Воскресенье'];
 const byTime = (a, b) => (a.time || '99:99').localeCompare(b.time || '99:99');
 function dayEvs(k) { return (data[k] || []).slice().sort(byTime); }
-const CHEX = { c1: '#e5646b', c2: '#e8a23b', c3: '#4caf86', c4: '#5b8def', c5: '#9a7bea' };
+const CHEX = { c1: '#ee9b92', c2: '#f2b97c', c3: '#8fcaa8', c4: '#8cb9e6', c5: '#b7a3e6' };
 function dayTint(list) {
   for (const e of list) {
     if (e.color && CHEX[e.color]) return CHEX[e.color];
@@ -599,7 +644,7 @@ document.getElementById('catform').onsubmit = e => {
   saveTodo(); renderTodo();
 };
 renderTodo();
-const VER = '7';
+const VER = '8';
 let tab = 'lists';
 try { tab = localStorage.getItem('planner-tab') || 'lists'; } catch (e) {}
 function setTab(t) {
