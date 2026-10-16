@@ -294,6 +294,8 @@ input:focus,textarea:focus{border-color:var(--accent)}
 #splash .tw{background:var(--accent);color:var(--on-accent);letter-spacing:.06em}
 #splash .tn{font-size:64px}
 #splash .sn{color:var(--accent-strong)}
+#todoDay{display:block;font:italic 500 32px/1.1 "Cormorant Garamond",Georgia,serif;margin:0 0 14px}
+#todoDay::after{content:"";display:block;width:38px;height:3px;border-radius:3px;background:var(--accent);margin-top:8px}
 @media (max-width:700px){h1{font-size:38px}.cell{border-radius:11px}}
 </style>
 </head>
@@ -316,7 +318,7 @@ input:focus,textarea:focus{border-color:var(--accent)}
   <div id="lower" data-tab="lists">
   <section id="agenda"></section>
   <section class="todo">
-    <h2>Дела</h2>
+    <h2 id="todoDay"></h2>
     <div class="cats" id="cats"></div>
     <form class="newcat" id="catform">
       <input id="catname" type="text" placeholder="Новый раздел, например «Работа»" aria-label="Название раздела">
@@ -418,7 +420,7 @@ function renderMonth(dir) {
     });
     c.append(pv);
     c.onclick = () => {
-      pick = k; setTab('day'); renderMonth();
+      pick = k; renderMonth(); renderTodo();
       const tb = document.querySelector('.tabs');
       if (tb) tb.scrollIntoView({ behavior: 'smooth', block: window.innerWidth <= 700 ? 'start' : 'nearest' });
     };
@@ -555,7 +557,7 @@ function go(n) {
 }
 document.getElementById('prev').onclick = () => go(-1);
 document.getElementById('next').onclick = () => go(1);
-document.getElementById('today').onclick = () => { vy = new Date().getFullYear(); vm = new Date().getMonth(); pick = iso(new Date()); renderMonth('f'); };
+document.getElementById('today').onclick = () => { vy = new Date().getFullYear(); vm = new Date().getMonth(); pick = iso(new Date()); renderMonth('f'); renderTodo(); };
 let sx = null;
 const mb = document.getElementById('month');
 mb.addEventListener('touchstart', e => { sx = e.touches[0].clientX; }, { passive: true });
@@ -571,11 +573,23 @@ let todo = null;
 try { todo = JSON.parse(localStorage.getItem(TKEY) || 'null'); } catch (e) { todo = null; }
 if (!Array.isArray(todo)) {
   todo = [
-    { id: 'c-home', name: 'Домашние дела', items: [] },
-    { id: 'c-clean', name: 'Уборка', items: [] },
-    { id: 'c-shop', name: 'Купить продукты', items: [] }
+    { id: 'c-home', name: 'Домашние дела', days: {} },
+    { id: 'c-clean', name: 'Уборка', days: {} },
+    { id: 'c-shop', name: 'Купить продукты', days: {} }
   ];
 }
+function migrateTodo() {
+  todo.forEach(cat => {
+    cat.days = cat.days || {};
+    if (Array.isArray(cat.items)) {
+      if (cat.items.length) { const k0 = iso(new Date()); cat.days[k0] = (cat.days[k0] || []).concat(cat.items); }
+      delete cat.items;
+    }
+  });
+}
+migrateTodo();
+function dayItems(cat) { return cat.days[pick] || []; }
+function totalItems(cat) { return Object.keys(cat.days).reduce((n, k) => n + cat.days[k].length, 0); }
 function saveTodo() { try { localStorage.setItem(TKEY, JSON.stringify(todo)); } catch (e) {} }
 let todoFocus = null;
 let armedCat = null;
@@ -583,30 +597,34 @@ let armedCat = null;
 function renderTodo() {
   const box = document.getElementById('cats');
   box.innerHTML = '';
+  const [Y, M, D] = pick.split('-').map(Number);
+  const pd = new Date(Y, M - 1, D);
+  document.getElementById('todoDay').textContent = FWD[(pd.getDay() + 6) % 7] + ', ' + pd.getDate() + ' ' + MONG[pd.getMonth()];
   todo.forEach(cat => {
     const c = el('div', 'cat');
     const h = el('div', 'ch');
-    const left = cat.items.filter(i => !i.done).length;
+    const items = dayItems(cat);
+    const left = items.filter(i => !i.done).length;
     h.append(el('h3', null, cat.name));
-    if (cat.items.length) h.append(el('span', 'cnt', left + ' из ' + cat.items.length));
+    if (items.length) h.append(el('span', 'cnt', left + ' из ' + items.length));
     const armed = armedCat === cat.id;
     const rm = el('button', 'x' + (armed ? ' arm' : ''), armed ? 'Удалить?' : '×');
     rm.type = 'button'; rm.title = 'Удалить раздел';
     rm.onclick = () => {
-      if (!cat.items.length || armed) { todo = todo.filter(x => x !== cat); armedCat = null; }
+      if (!totalItems(cat) || armed) { todo = todo.filter(x => x !== cat); armedCat = null; }
       else armedCat = cat.id;
       saveTodo(); renderTodo();
     };
     h.append(rm);
     c.append(h);
 
-    cat.items.forEach(it => {
+    items.forEach(it => {
       const row = el('div', 'it' + (it.done ? ' done' : ''));
       const cb = el('input'); cb.type = 'checkbox'; cb.checked = !!it.done;
       cb.setAttribute('aria-label', 'Выполнено');
       cb.onchange = () => { it.done = cb.checked; saveTodo(); renderTodo(); };
       const del = el('button', 'x', '×'); del.type = 'button'; del.title = 'Удалить';
-      del.onclick = () => { cat.items = cat.items.filter(x => x !== it); saveTodo(); renderTodo(); };
+      del.onclick = () => { cat.days[pick] = items.filter(x => x !== it); if (!cat.days[pick].length) delete cat.days[pick]; saveTodo(); renderTodo(); };
       row.append(cb, el('span', null, it.text), del);
       c.append(row);
     });
@@ -620,7 +638,7 @@ function renderTodo() {
       e.preventDefault();
       const t = inp.value.trim();
       if (!t) return;
-      cat.items.push({ id: Date.now() + Math.random(), text: t, done: false });
+      (cat.days[pick] = cat.days[pick] || []).push({ id: Date.now() + Math.random(), text: t, done: false });
       todoFocus = cat.id; armedCat = null;
       saveTodo(); renderTodo();
     };
@@ -639,12 +657,12 @@ document.getElementById('catform').onsubmit = e => {
   const inp = document.getElementById('catname');
   const name = inp.value.trim();
   if (!name) return;
-  todo.push({ id: 'c' + Date.now(), name, items: [] });
+  todo.push({ id: 'c' + Date.now(), name, days: {} });
   inp.value = '';
   saveTodo(); renderTodo();
 };
 renderTodo();
-const VER = '8';
+const VER = '9';
 let tab = 'lists';
 try { tab = localStorage.getItem('planner-tab') || 'lists'; } catch (e) {}
 function setTab(t) {
@@ -674,7 +692,7 @@ document.addEventListener('visibilitychange', () => {
     const t = iso(new Date());
     if (pick === lastToday) pick = t;
     lastToday = t;
-    updateSub(); renderMonth();
+    updateSub(); renderMonth(); renderTodo();
   }
 });
 
@@ -725,7 +743,7 @@ document.getElementById('bk').onclick = () => {
       const o = JSON.parse(inp.value.trim());
       if (!o || typeof o !== 'object' || !o.data) throw new Error('bad');
       data = o.data; dayColors = o.dayColors || {};
-      if (Array.isArray(o.todo)) todo = o.todo;
+      if (Array.isArray(o.todo)) { todo = o.todo; migrateTodo(); }
       save(); saveDays(); saveTodo(); renderMonth(); renderTodo();
       msg.textContent = 'Данные восстановлены.';
     } catch (e) {
