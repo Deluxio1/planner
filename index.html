@@ -123,6 +123,7 @@ input{font:inherit;color:var(--text);background:var(--surface);border:1px solid 
 .pv{display:flex;flex-direction:column;gap:2px;min-width:0}
 .pe{font-size:12px;line-height:1.3;padding:1px 5px;border-radius:5px;border-left:3px solid var(--c,var(--accent));background:color-mix(in srgb,var(--c,var(--accent)) 15%,var(--surface));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pe.done{text-decoration:line-through;color:var(--muted)}
+.pt{font-weight:500;font-variant-numeric:tabular-nums;margin-right:4px;opacity:.7}
 .more{font-size:12px;color:var(--muted);padding-left:2px}
 .dots{display:none;gap:3px;flex-wrap:wrap;justify-content:center}
 .pd{width:6px;height:6px;border-radius:50%;background:var(--c,var(--accent))}
@@ -414,7 +415,9 @@ function renderMonth(dir) {
     const pv = el('div', 'pv');
     evs.forEach(e => {
       const kd = kindOf(e);
-      const p = el('div', 'pe' + (e.done ? ' done' : '') + (e.color ? ' ' + e.color : ''), e.title);
+      const p = el('div', 'pe' + (e.done ? ' done' : '') + (e.color ? ' ' + e.color : ''));
+      if (e.time) p.append(el('span', 'pt', e.time));
+      p.append(e.title);
       if (!e.color && kd) p.style.setProperty('--c', kd.color);
       pv.append(p);
     });
@@ -662,7 +665,7 @@ document.getElementById('catform').onsubmit = e => {
   saveTodo(); renderTodo();
 };
 renderTodo();
-const VER = '9';
+const VER = '10';
 let tab = 'lists';
 try { tab = localStorage.getItem('planner-tab') || 'lists'; } catch (e) {}
 function setTab(t) {
