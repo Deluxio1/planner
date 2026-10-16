@@ -327,6 +327,15 @@ const MONG = ['января','февраля','марта','апреля','ма�
 const FWD = ['Понедельник','Вторник','Среда','Четверг','Пятница','Суббота','Воскресенье'];
 const byTime = (a, b) => (a.time || '99:99').localeCompare(b.time || '99:99');
 function dayEvs(k) { return (data[k] || []).slice().sort(byTime); }
+const CHEX = { c1: '#e5646b', c2: '#e8a23b', c3: '#4caf86', c4: '#5b8def', c5: '#9a7bea' };
+function dayTint(list) {
+  for (const e of list) {
+    if (e.color && CHEX[e.color]) return CHEX[e.color];
+    const kd = kindOf(e);
+    if (kd) return kd.color;
+  }
+  return null;
+}
 function kindsOf(list) {
   const r = [];
   list.forEach(e => { const kd = kindOf(e); if (kd && !r.includes(kd)) r.push(kd); });
@@ -345,21 +354,20 @@ function renderMonth(dir) {
   for (let i = 0; i < weeks * 7; i++) {
     const d = new Date(start); d.setDate(start.getDate() + i);
     const k = iso(d);
-    const evs = dayEvs(k), kinds = kindsOf(evs);
+    const evs = dayEvs(k), tint = dayTint(evs);
     const c = el('button', 'cell' + (d.getMonth() !== vm ? ' out' : '') + (k === todayKey ? ' today' : '')
-      + (dayColors[k] ? ' dc d' + dayColors[k].slice(1) : '') + (kinds.length ? ' dk' : '') + (k === pick ? ' sel' : '') + (dir ? ' pop' : ''));
+      + (dayColors[k] ? ' dc d' + dayColors[k].slice(1) : '') + (tint ? ' dk' : '') + (k === pick ? ' sel' : '') + (dir ? ' pop' : ''));
     c.type = 'button';
     c.setAttribute('aria-label', d.getDate() + ' ' + MONG[d.getMonth()]);
-    if (kinds.length) c.style.setProperty('--kc', kinds[0].color);
+    if (tint) c.style.setProperty('--kc', tint);
     if (dir) c.style.animationDelay = (i * 10) + 'ms';
     const top = el('div', 'ct');
     top.append(el('span', 'dn2', d.getDate()));
-    if (kinds.length) top.append(el('span', 'ki', kinds.map(x => x.icon).join('')));
     c.append(top);
     const pv = el('div', 'pv');
     evs.forEach(e => {
       const kd = kindOf(e);
-      const p = el('div', 'pe' + (e.done ? ' done' : '') + (e.color ? ' ' + e.color : ''), (kd ? kd.icon + ' ' : '') + e.title);
+      const p = el('div', 'pe' + (e.done ? ' done' : '') + (e.color ? ' ' + e.color : ''), e.title);
       if (!e.color && kd) p.style.setProperty('--c', kd.color);
       pv.append(p);
     });
@@ -394,7 +402,7 @@ function renderAgenda() {
   evs.forEach(e => {
     const kd = kindOf(e);
     const row = el('button', 'agr' + (e.done ? ' done' : '')); row.type = 'button';
-    const li = el('span', 'agi' + (e.color ? ' ' + e.color : ''), (e.time ? e.time + '  ' : '') + (kd ? kd.icon + ' ' : '') + e.title);
+    const li = el('span', 'agi' + (e.color ? ' ' + e.color : ''), (e.time ? e.time + '  ' : '') + e.title);
     if (!e.color && kd) li.style.setProperty('--c', kd.color);
     li.style.flex = '1';
     row.append(el('span', 'chk', e.done ? '✓' : ''), li);
@@ -452,7 +460,7 @@ function renderSheet(focus) {
     else if (kd) { row.dataset.c = '1'; row.style.setProperty('--c', kd.color); }
     const body = el('div', 'body');
     if (ev.time) body.append(el('span', 't', ev.time));
-    body.append(el('span', 'tt', (kd ? kd.icon + ' ' : '') + ev.title));
+    body.append(el('span', 'tt', ev.title));
     const dot = el('button', 'dot'); dot.type = 'button'; dot.title = 'Сменить цвет'; dot.setAttribute('aria-label', 'Сменить цвет');
     dot.onclick = e => { e.stopPropagation(); ev.color = COLORS[(COLORS.indexOf(ev.color || '') + 1) % COLORS.length]; refresh(); };
     const del = el('button', 'x', '×'); del.type = 'button'; del.title = 'Удалить'; del.setAttribute('aria-label', 'Удалить');
@@ -463,17 +471,10 @@ function renderSheet(focus) {
   });
   lastAdded = null;
 
-  p.append(el('div', 'lab', 'Добавить'));
+  p.append(el('div', 'lab', 'Новое дело'));
   const f = el('form');
   const time = el('input'); time.type = 'time'; time.setAttribute('aria-label', 'Время');
-  const text = el('input'); text.type = 'text'; text.placeholder = 'Что запланировано'; text.setAttribute('aria-label', 'Событие');
-  const chips = el('div', 'chips');
-  KINDS.forEach(kd => {
-    const b = el('button', 'chip', kd.icon); b.type = 'button';
-    b.title = kd.text; b.setAttribute('aria-label', kd.text);
-    b.onclick = () => addEv(k, time.value, kd.text, '', kd.id);
-    chips.append(b);
-  });
+  const text = el('input'); text.type = 'text'; text.placeholder = 'Что нужно сделать'; text.setAttribute('aria-label', 'Событие');
   let picked = '';
   const sw = el('div', 'sw');
   COLORS.forEach(c => {
@@ -482,12 +483,16 @@ function renderSheet(focus) {
     sw.append(b);
   });
   const ok = el('button', 'save', 'Сохранить'); ok.type = 'submit';
-  f.append(time, text, chips, sw, ok);
+  const lt = el('div', 'lab', 'Время (можно не указывать)');
+  const ld = el('div', 'lab', 'Дело');
+  const lc = el('div', 'lab', 'Цвет');
+  [lt, ld, lc].forEach(x => { x.style.margin = '6px 0 0'; });
+  f.append(lt, time, ld, text, lc, sw, ok);
   f.onsubmit = e => {
     e.preventDefault();
     const t = text.value.trim();
     if (!t) { text.focus(); return; }
-    addEv(k, time.value, t, picked, (KINDS.find(x => x.re.test(t)) || {}).id || '');
+    addEv(k, time.value, t, picked, '');
   };
   p.append(f);
   s.append(p);
@@ -594,7 +599,7 @@ document.getElementById('catform').onsubmit = e => {
   saveTodo(); renderTodo();
 };
 renderTodo();
-const VER = '6';
+const VER = '7';
 let tab = 'lists';
 try { tab = localStorage.getItem('planner-tab') || 'lists'; } catch (e) {}
 function setTab(t) {
